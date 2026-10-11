@@ -36,6 +36,8 @@ Goal: documented instance layout + provenance; femic-consumption contract; scena
 
 Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branch: `feature/issue-2-ep2-data-contract`.
 
+- [x] FreshForge workflow layer adopted (plan-only provider + pipeline/matrix specs) — `planning/workflow-blueprint.md`
+
 - [x] Private raw-data store submodule (`external/wbi-ebird-data`, DataLad, private)
 
 ## E-P3 — Core engine
@@ -46,6 +48,7 @@ Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 - [ ] ε-constraint scenario grid runner (11 scenarios × TSA × species/guild)
 - [ ] Output contract (results tables) + smoke tests
 - [ ] Solver config: HiGHS default; Gurobi switch documented; backend recorded in run metadata
+- [ ] FreshForge `run_node` hooks for `build_model` / `run_scenarios` (+ evidence-manifest smoke)
 
 ## E-P4 — Bird module
 
@@ -54,6 +57,7 @@ Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 - [ ] Coefficient/curve module (softwood / hardwood / age)
 - [ ] EBD-derived ingestion path (auk-style filtering; derived tables only)
 - [ ] Species/guild registry (suite per manuscript P2.3)
+- [ ] FreshForge `run_node` hooks for `ingest_ebd` / `fit_antifunction`
 
 ## E-P5 — Verification & parity
 
@@ -62,6 +66,7 @@ Goal: reproduce legacy RBNU / 5-TSA results within tolerance; diagnostics.
 - [ ] Legacy parity fixtures + tolerance report
 - [ ] `results/REPRODUCIBILITY.md`
 - [ ] Anomaly adjudication with the manuscript claims map
+- [ ] FreshForge `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers`
 
 ## E-P6 — Docs, examples, release
 

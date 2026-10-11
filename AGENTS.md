@@ -12,6 +12,7 @@ Pattern repos: `UBC-FRESH/fresh-daugherty` (closest analogue), `UBC-FRESH/fhops`
 - Consume `UBC-FRESH/femic` outputs via a documented file contract; do not import-couple.
 - Bird anticipation curves are served by the species-generic module in this repo (lineage: `fitBirdBiomassModel`).
 - **Raw eBird data are never redistributed**; derived products only (see manuscript repo `planning/ebird-data-request*.md`). Private raw store: submodule `external/wbi-ebird-data` (DataLad); CI does not init submodules; never publish its content.
+- Workflow layer: **FreshForge** — pipeline graphs in `workflows/`, provider `wbi` via the `freshforge.providers` entry point; evidence manifests are the run-record contract; FreshForge stays domain-neutral while this repo owns node execution.
 
 ## Current repo state
 
@@ -35,6 +36,7 @@ Phase E-P1 (scaffold). Layout: `src/wbi_birds/`, `tests/`, `docs/`, `examples/`,
 
 - Solver: **HiGHS** (open) by default; Gurobi optional switch; record solver + version in result metadata.
 - Instances: **one per management unit (TSA)**.
+- Workflow: FreshForge (pinned in the `workflow` extra); execution hooks land per ROADMAP E-P3–E-P5; see `planning/workflow-blueprint.md`.
 
 ## Guardrails
 

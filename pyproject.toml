@@ -39,6 +39,7 @@ Changelog = "https://github.com/UBC-FRESH/wbi-birds/blob/main/CHANGE_LOG.md"
 docs = ["sphinx>=7", "sphinx-rtd-theme>=2"]
 dev = [
   "build>=1.2",
+  "freshforge>=0.1.0a5,<0.2",
   "pytest>=8",
   "ruff>=0.5",
   "sphinx>=7",
@@ -48,9 +49,13 @@ dev = [
 quality = ["ruff>=0.5"]
 release = ["build>=1.2", "twine>=5"]
 test = ["pytest>=8"]
+workflow = ["freshforge>=0.1.0a5,<0.2"]
 
 [project.scripts]
 wbi-birds = "wbi_birds.cli:app"
+
+[project.entry-points."freshforge.providers"]
+wbi = "wbi_birds.forge:provider_factory"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

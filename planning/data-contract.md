@@ -45,7 +45,7 @@ checksums:
 ## `config/run.yaml` (sketch)
 
 ```yaml
-management_unit: {id: TSA08, name: "Fort St John"}
+management_unit: {id: TSA40, name: "Fort St John"}
 horizon_years: 80
 even_flow: {epsilon: 0.10}
 utilization: 0.85

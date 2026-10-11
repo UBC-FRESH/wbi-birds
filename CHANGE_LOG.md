@@ -22,3 +22,9 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - Private DataLad dataset `UBC-FRESH/wbi-ebird-data` created; wired as `external/wbi-ebird-data` submodule of this repo.
 - E-P2.1 decisions resolved: HiGHS default solver (Gurobi switch documented), per-management-unit (TSA) instances, instance-local coefficients.
+
+## 2026-10-11 — FreshForge workflow layer adopted
+
+- Provider `wbi` added (plan-only; `src/wbi_birds/forge.py`, entry point `freshforge.providers`) declaring 8 pipeline node types.
+- Specs: `workflows/wbi_pipeline.yaml`, `workflows/wbi_pipeline_template.yaml`, `workflows/wbi_mu_matrix.yaml` (5 MUs); blueprint: `planning/workflow-blueprint.md`.
+- Validated with freshforge 0.1.0a5: `providers` (wbi listed), `validate` + `plan` green, `matrix expand` = 5 cases, 0 diagnostics. Execution hooks scheduled per ROADMAP E-P3–E-P5.
