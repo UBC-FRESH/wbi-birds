@@ -27,6 +27,7 @@ from wbi_birds.fit import fit_poisson_glm, stage_coefficients, update_instance_c
 from wbi_birds.ingest import IngestSpec, ingest_ebd
 from wbi_birds.mapping import load_ws3_sections, locate_ws3_bundle, stage_ws3_sections
 from wbi_birds.model import build_model
+from wbi_birds.parity import compare_instance_results, write_report
 from wbi_birds.registry import load_registry
 from wbi_birds.results import write_scenario_result
 from wbi_birds.runner import ProblemSpec, run_scenario
@@ -119,8 +120,8 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
         description=(
             "Compare engine results against legacy RBNU/5-TSA outputs within recorded tolerances."
         ),
-        inputs=("scenario_results",),
         outputs=("parity_report",),
+        parameters=("instance", "reference", "label", "strict"),
         artifacts=("report",),
     ),
     NodeTypeMetadata(
@@ -196,6 +197,8 @@ class WbiProvider:
                 return self._run_ingest_ebd(node, params, context)
             if node_type.id == "fit_antifunction":
                 return self._run_fit_antifunction(node, params, context)
+            if node_type.id == "verify_parity":
+                return self._run_verify_parity(node, params, context)
         except Exception as exc:
             return ProviderRunResult(
                 status=RunStatus.FAILED,
@@ -371,6 +374,60 @@ class WbiProvider:
             outputs=outputs,
             artifacts={"coefficients": self._relative_to_workdir(path, context)},
             data={"instance": str(instance)},
+        )
+
+    def _run_verify_parity(
+        self, node: WorkflowNode, params: dict[str, Any], context: Any
+    ) -> ProviderRunResult:
+        instance = self._resolve_instance(params, context)
+        if "reference" not in params:
+            raise ValueError(
+                "Node parameters must provide 'reference' (long-format reference table)"
+            )
+        reference = Path(context.resolve_path(str(params["reference"])))
+        label = str(params.get("label") or "suite")
+        strict = bool(params.get("strict", False))
+        report = compare_instance_results(instance, reference)
+        artifacts = write_report(report, instance / "results", label=label)
+        summary = report.summary()
+        diagnostics: list[Diagnostic] = []
+        for metric, stats in summary["per_metric"].items():
+            if stats["failed"]:
+                diagnostics.append(
+                    Diagnostic(
+                        severity=DiagnosticSeverity.WARNING,
+                        code="parity.failed",
+                        message=(
+                            f"Parity metric '{metric}': {stats['failed']} of {stats['n']} "
+                            "records failed tolerance."
+                        ),
+                        location=node.id,
+                    )
+                )
+        status = RunStatus.SUCCESS
+        if strict and summary["n_failed"] > 0:
+            status = RunStatus.FAILED
+            diagnostics.append(
+                Diagnostic(
+                    severity=DiagnosticSeverity.ERROR,
+                    code="parity.strict",
+                    message=f"Strict parity mode: {summary['n_failed']} record(s) failed.",
+                    location=node.id,
+                )
+            )
+        return ProviderRunResult(
+            status=status,
+            outputs={"parity_report": summary},
+            artifacts={
+                "report_json": self._relative_to_workdir(
+                    instance / "results" / artifacts["json"], context
+                ),
+                "report_markdown": self._relative_to_workdir(
+                    instance / "results" / artifacts["markdown"], context
+                ),
+            },
+            diagnostics=tuple(diagnostics),
+            data={"reference": str(reference), "label": label, "strict": strict},
         )
 
     @staticmethod

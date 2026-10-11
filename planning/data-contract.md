@@ -34,6 +34,10 @@ Status: **draft for review** (E-P2.1 / #7). The femic → inputs mapping is fixe
 - Canonical suite: nine species across four guilds (`wbi_birds.registry`); codes and common names are checked against the eBird taxonomy snapshot (`wbi_birds.taxonomy`).
 - `measure_scope`: `harvest` (default) or `landscape` (row sums over `null` + `harvest` prescriptions). Bird scenarios materialize the row on every period (sentinel bounds where unconstrained) and record the per-period series **exactly from the LP solution**.
 
+## Parity comparison
+
+Legacy outputs are compared as long-format reference tables (`management_unit, scenario_id, metric, period, value`) via `wbi_birds.parity`; tolerance policy = `|engine - reference| <= abs_tol + rel_tol * |reference|` (defaults per metric; final values adjudicated in E-P5.3). Reports land under `results/parity/`; the `wbi.verify_parity` hook scans `<instance>/results/scenarios/**` against a reference table and writes `<label>-parity.{json,md}` there, with `parity.failed` warnings per failing metric and `strict: true` failing the node on any mismatch.
+
 ## Results layout
 
 `results/scenarios/<management-unit>/<scenario-id>.csv` — per-period table

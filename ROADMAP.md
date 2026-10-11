@@ -78,10 +78,12 @@ Phase branch: `feature/issue-5-ep5-parity`. Child issues: #22 (tolerance module)
 
 Goal: reproduce legacy RBNU / 5-TSA results within tolerance; diagnostics.
 
-- [ ] Legacy parity fixtures + tolerance report
-- [ ] `results/REPRODUCIBILITY.md`
+- [x] Legacy parity tolerance module — `wbi_birds.parity` (alignment, abs+rel tolerances, deterministic reports; fixture tests)
+- [x] `results/REPRODUCIBILITY.md` — draft (framework; release completion in E-P6)
+- [x] `scripts/parity_check.py` + `planning/parity-reference-acquisition.md` — standalone CLI + acquisition path (real run: #24)
 - [ ] Anomaly adjudication with the manuscript claims map
-- [ ] FreshForge `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers`
+- [x] FreshForge `run_node` hook for `verify_parity` — instance-wide comparison vs long-format reference tables; `strict` gating; JSON+Markdown reports under `results/parity/`
+- [ ] FreshForge hooks for `compute_frontiers` / `analyze_frontiers` (analysis layer)
 
 ## E-P6 — Docs, examples, release
 
