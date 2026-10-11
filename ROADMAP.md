@@ -45,6 +45,8 @@ Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branc
 
 ## E-P3 — Core engine
 
+Phase branch: `feature/issue-3-ep3-core-engine`. Child issues: #11 (model builder), #12 (scenario grid), #13 (outputs), #14 (FreshForge hooks), #15 (femic composition + B3).
+
 Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 
 - [ ] ws3 model builder from the instance contract

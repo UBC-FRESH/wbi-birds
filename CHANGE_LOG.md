@@ -48,3 +48,8 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - `wbi_birds.mapping` (load/stage ws3 Woodstock section files) + `planning/femic-map.md` v1 (boundary, contract, open questions for femic#316); real `tsa24_clipped` fixture from the ws3 examples.
 - Suite green: 27 tests. E-P2 children (#7/#8/#9) closed; parent #2 closed; phase PR opened to main.
+
+## 2026-10-11 — E-P2 merged to main; E-P3 activated
+
+- PR #10 (E-P2 phase) merged to `main` (CI green).
+- E-P3 activated: children #11-#15; branch `feature/issue-3-ep3-core-engine`.
