@@ -87,9 +87,11 @@ Goal: reproduce legacy RBNU / 5-TSA results within tolerance; diagnostics.
 
 ## E-P6 — Docs, examples, release
 
+Phase branch: `feature/issue-6-ep6-release`. Child issues: #26 (docs site), #27 (example + notebook), #28 (release).
+
 Goal: `v1.0.0` release with DOI.
 
-- [ ] Docs site complete (quickstart, contracts, CLI); GitHub Pages publishing
+- [x] Docs site complete (quickstart, concepts, workflows, parity, CLI, reproducibility, API reference); GitHub Pages publishing — https://ubc-fresh.github.io/wbi-birds/
 - [ ] Example instance + notebook
 - [ ] Tag `v1.0.0` + Zenodo DOI + `CITATION.cff`
 - [ ] Self-bootstrapping README acceptance: fresh environment + README (public lane) reproduces headline results

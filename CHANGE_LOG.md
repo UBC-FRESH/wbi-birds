@@ -122,3 +122,9 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - `planning/parity-reference-acquisition.md`: legacy reference locations (outputs not in the repos), export checklist to the long-format contract, acquisition options, gating.
 - `scripts/parity_check.py`: standalone parity CLI (reports under `results/parity/`; `--strict` exit code).
 - `results/REPRODUCIBILITY.md`: draft framework (environment, verification, fixture chain, real-data prerequisites, parity, release placeholders). CLI tests added; suite 79 green.
+
+## 2026-10-11 — E-P6 activated; E-P6.1 docs site
+
+- E-P6 children: #26 (docs), #27 (example + notebook), #28 (release); branch `feature/issue-6-ep6-release`.
+- Docs site: quickstart, concepts, workflows, parity, CLI, reproducibility, API reference (autodoc; freshforge mocked); `sphinx-build -W` green; GitHub Pages enabled (`build_type: workflow`).
+- Manuscript repo renamed to `UBC-FRESH/wbi-birds-manuscript` (references updated across both repos).
