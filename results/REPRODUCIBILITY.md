@@ -44,9 +44,11 @@ python -m nbconvert --to notebook --execute examples/quickstart.ipynb
 
 Recorded 2026-10-11 from a fresh clone of `feature/issue-6-ep6-release`:
 
-- `pytest -q`: **<recorded after acceptance>**
-- notebook: **<recorded after acceptance>**
-- environment: Python 3.12, HiGHS via `ws3` (version in result provenance)
+- `pip install -e ".[dev,workflow,examples]"`: clean install
+- `pytest -q`: **79 passed** (~32 s)
+- notebook: **executed end-to-end — 5/5 cells, parity 32/32, zero failures**
+- environment: Python 3.12, `ws3` 1.1.0a5, FreshForge 0.1.0a5, HiGHS (`highspy`)
+  1.15.1, Rich 15.0.0
 
 ## Fixture pipeline (no private data)
 

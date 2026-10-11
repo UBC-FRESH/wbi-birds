@@ -135,3 +135,10 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - `workflows/wbi_example.yaml` (six-node graph); `examples` extra (nbconvert/ipykernel/matplotlib); docs page + examples README.
 - Hardened machine-readable FreshForge invocations against `FORCE_COLOR`/`CLICOLOR_FORCE` (Rich forces ANSI colour whenever they are present, breaking `json.loads`); upstream report filed at `UBC-FRESH/freshforge#119`.
 - Suite: 79 tests green; notebook executes end-to-end (5/5 cells).
+
+## 2026-10-11 — E-P6.3 v1.0.0 release
+
+- Version 1.0.0 (pyproject, `__version__`, provider metadata; version-coherence test reads pyproject); `CITATION.cff` (date-released) + `.zenodo.json`; release workflow now creates the GitHub release with dist assets.
+- README rewritten into public lane (fixture bootstrap, acceptance-tested) + campaign lane; `results/REPRODUCIBILITY.md` finalized with the acceptance record.
+- Self-bootstrapping acceptance on a fresh clone: clean install -> 79 tests passed -> example notebook 5/5 cells, parity 32/32 (ws3 1.1.0a5, FreshForge 0.1.0a5, HiGHS 1.15.1).
+- Zenodo DOI deposit pending enabling the Zenodo-GitHub integration (#29).

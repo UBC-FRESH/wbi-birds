@@ -93,5 +93,5 @@ Goal: `v1.0.0` release with DOI.
 
 - [x] Docs site complete (quickstart, concepts, workflows, parity, CLI, reproducibility, API reference); GitHub Pages publishing — https://ubc-fresh.github.io/wbi-birds/
 - [x] Example instance + notebook — `examples/quickstart.ipynb` (executed in CI), `workflows/wbi_example.yaml`, packaged reference table
-- [ ] Tag `v1.0.0` + Zenodo DOI + `CITATION.cff`
-- [ ] Self-bootstrapping README acceptance: fresh environment + README (public lane) reproduces headline results
+- [x] `v1.0.0` release metadata: version bump, `CITATION.cff`, `.zenodo.json`, GitHub-release workflow; tag pushed at phase merge — Zenodo DOI deposit pending integration (#29)
+- [x] Self-bootstrapping README acceptance — fresh clone -> install -> 79 tests -> example notebook 5/5 (recorded in `results/REPRODUCIBILITY.md`)
