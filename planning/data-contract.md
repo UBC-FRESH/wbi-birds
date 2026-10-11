@@ -25,6 +25,12 @@ Status: **draft for review** (E-P2.1 / #7). The femic → inputs mapping is fixe
     scratch/               # ignored working area
 ```
 
+## Results layout
+
+`results/scenarios/<management-unit>/<scenario-id>.csv` — per-period table
+(`period, harvest_volume_m3, bird_abundance`); `results/scenarios/<management-unit>/<scenario-id>.result.yaml`
+— the `ScenarioResult` record, referencing its artifacts.
+
 ## `manifest.yaml` (sketch)
 
 ```yaml

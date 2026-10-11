@@ -51,10 +51,10 @@ Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 
 - [x] ws3 model builder from the instance contract (`wbi_birds.model`; fixture model builds; stats recorded)
 - [x] ε-constraint scenario grid runner — `wbi_birds.runner` (per-period floors, even-flow bands, HiGHS; fixture smoke tests green)
-- [ ] Output contract (results tables) + smoke tests
+- [x] Output contract — `wbi_birds.results` CSV tables + YAML records under `<instance>/results/` (deterministic; fixture-tested)
 - [ ] B3 support: habitat-only reserve network scenario batch vs integrated ε results (`UBC-FRESH/wbi-birds-2021#14`)
 - [ ] Solver config: HiGHS default; Gurobi switch documented; backend recorded in run metadata
-- [ ] FreshForge `run_node` hooks for `run_scenarios` (+ evidence-manifest smoke)
+- [x] FreshForge `run_node` hooks for `build_model`/`run_scenarios` — `freshforge run` smoke + durable evidence manifest green
 - [ ] femic composition: swap interim `compile_instance`/`build_model` adapters for femic model-build stages
 
 ## E-P4 — Bird module

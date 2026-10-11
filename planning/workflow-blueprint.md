@@ -65,7 +65,7 @@ MU display names: filled from the TSR registry once verified (E-P2 TODO).
 | Phase | Work |
 |---|---|
 | E-P2 | Provider declaration + pipeline/matrix specs (this blueprint) — **done, plan-only**; AOI model-build dependency registered (`UBC-FRESH/femic#316`) |
-| E-P3 | `run_node` hooks for `run_scenarios` (+ evidence in CI smoke); swap interim `compile_instance`/`build_model` adapters for femic model-build stages |
+| E-P3 | ✅ `run_node` hooks for `build_model` / `run_scenarios` + evidence-manifest smoke (2026-10-11); femic stage swap pending (E-P3.5) |
 | E-P4 | `run_node` hooks for `ingest_ebd` / `fit_antifunction` |
 | E-P5 | `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers` |
 

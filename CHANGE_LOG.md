@@ -64,3 +64,9 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - Fixture smoke: nadir solve optimal (harvest ≈ 332,914.7 m³ on `tsa24_clipped`), binding per-period floor respected, infeasible floors reported as `infeasible`, even-flow scenario solves. Suite: 38 tests green.
 - Upstream find (filed): `UBC-FRESH/ws3#156` — the Woodstock ACTION importer drops the harvest flag (`*ACTION <code> Y` → `is_harvest = 0`), zeroing any `is_harvest()`-filtered coefficient function (including the shipped 022 notebook pattern). Engine workaround: explicit harvest action codes from instance config (`model.harvest_acodes`), set after import.
 - E-P3.2 (#12) closed.
+
+## 2026-10-11 — E-P3.3 result outputs; E-P3.4 FreshForge execution hooks
+
+- `wbi_birds.results`: deterministic per-scenario CSV tables + YAML records under `<instance>/results/scenarios/<mu>/`; artifacts referenced from records; contract doc updated. (#13 closed)
+- FreshForge hooks: `wbi.build_model` / `wbi.run_scenarios` execute end-to-end; `freshforge run` smoke writes results + a durable evidence manifest on the fixture instance. (#14 closed)
+- Dependency: `freshforge` pinned to checkout commit `5bce95b56146613c7c01950403fb717d3af886d7` (evidence manifests unreleased past PyPI 0.1.0a5); sunset = switch to a version pin at the next freshforge alpha. Suite: 42 tests green.

@@ -1,0 +1,28 @@
+workflow:
+  id: wbi_smoke
+  name: WBI smoke workflow (fixture instance)
+  description: >
+    Minimal executable workflow: build a ws3 model from a staged instance and
+    run one ε-constraint scenario, writing result tables + records.
+nodes:
+  - id: build_model
+    provider: wbi.build_model
+    parameters:
+      instance: instances/tsa24
+    outputs:
+      forest_model: fixture_model
+
+  - id: run_scenarios
+    provider: wbi.run_scenarios
+    needs: [build_model]
+    inputs:
+      forest_model: build_model.forest_model
+    outputs:
+      scenario_results: tsa24_s00
+    parameters:
+      instance: instances/tsa24
+      management_unit: TSA24
+      scenario_id: tsa24-s00
+      objective_expr: "totvol * 0.85"
+      constraint_expr: "totvol"
+      even_flow_epsilon: null
