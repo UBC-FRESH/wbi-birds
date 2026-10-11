@@ -28,6 +28,7 @@ nodes:
       management_unit: TSA24
   - id: build_model
     provider: wbi.build_model
+    needs: [compile_instance]
     parameters:
       instance: instances/tsa24
     outputs:

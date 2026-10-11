@@ -96,3 +96,9 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 ## 2026-10-11 — E-P4.3 EBD-derived ingestion
 
 - `wbi_birds.ingest`: streaming filter of the private EBD extract (species suite x breeding months, optional complete-checklists-only) into derived point-level CSVs with SHA256-stamped provenance sidecars; legacy `X` -> 0.0 convention; observer identifiers never copied. Tab-delimited fixture with noise rows; 6 tests. Suite: 62 tests. E-P4.3 (#19) closed.
+
+## 2026-10-11 — E-P4.4 fitting + hooks; E-P4 phase complete
+
+- `wbi_birds.fit`: `stage_coefficients` (provided/R-lineage mode, taxonomy-validated, deterministic output) and engine-native Poisson MLE (`fit_poisson_glm`, feature-standardized L-BFGS-B, gradient-based convergence flag); merge preserves other species and marks `source.fit`.
+- FreshForge hooks: `wbi.ingest_ebd` and `wbi.fit_antifunction` execute; `wbi.run_scenarios` supports `bird_species` + `measure_scope` (bird row). Full chain smoke: ingest → fit → compile → build → bird scenario via `freshforge run` with evidence; positive landscape bird total verified.
+- Suite: 69 tests green. E-P4 children #17–#20 all closed; phase PR opened.

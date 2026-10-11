@@ -22,8 +22,12 @@ from freshforge.records import (
 )
 from ws3 import opt as ws3opt
 
+from wbi_birds.bird import load_coefficients
+from wbi_birds.fit import fit_poisson_glm, stage_coefficients, update_instance_coefficients
+from wbi_birds.ingest import IngestSpec, ingest_ebd
 from wbi_birds.mapping import load_ws3_sections, locate_ws3_bundle, stage_ws3_sections
 from wbi_birds.model import build_model
+from wbi_birds.registry import load_registry
 from wbi_birds.results import write_scenario_result
 from wbi_birds.runner import ProblemSpec, run_scenario
 
@@ -38,8 +42,15 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
             "Filter the private EBD/SED extract to the species suite and derive point-level tables."
         ),
         outputs=("derived_tables",),
-        parameters=("species_suite", "months"),
-        artifacts=("report",),
+        parameters=(
+            "instance",
+            "ebd",
+            "species",
+            "months",
+            "complete_checklists_only",
+            "out",
+        ),
+        artifacts=("derived_table", "provenance"),
     ),
     NodeTypeMetadata(
         id="fit_antifunction",
@@ -50,7 +61,7 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
         ),
         inputs=("derived_tables",),
         outputs=("coefficients",),
-        parameters=("family",),
+        parameters=("instance", "mode", "coefficients", "covariates", "species"),
         artifacts=("coefficients",),
     ),
     NodeTypeMetadata(
@@ -88,6 +99,8 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
             "even_flow_epsilon",
             "constraint_floor",
             "solver",
+            "bird_species",
+            "measure_scope",
         ),
         artifacts=("results",),
     ),
@@ -179,6 +192,10 @@ class WbiProvider:
                 return self._run_scenarios(node, params, context)
             if node_type.id == "compile_instance":
                 return self._run_compile_instance(node, params, context)
+            if node_type.id == "ingest_ebd":
+                return self._run_ingest_ebd(node, params, context)
+            if node_type.id == "fit_antifunction":
+                return self._run_fit_antifunction(node, params, context)
         except Exception as exc:
             return ProviderRunResult(
                 status=RunStatus.FAILED,
@@ -227,10 +244,17 @@ class WbiProvider:
         for required in ("scenario_id", "objective_expr", "constraint_expr"):
             if required not in params:
                 raise ValueError(f"Node parameters must provide '{required}'")
+        bird_species = params.get("bird_species")
+        bird_coefficients = load_coefficients(instance, str(bird_species)) if bird_species else None
+        measure_scope = str(
+            params.get("measure_scope") or ("landscape" if bird_species else "harvest")
+        )
         spec = ProblemSpec(
             objective_expr=str(params["objective_expr"]),
             constraint_row=str(params.get("constraint_row", "constraint")),
             constraint_expr=str(params["constraint_expr"]),
+            measure_scope=measure_scope,  # type: ignore[arg-type]
+            bird_coefficients=bird_coefficients,
             even_flow_epsilon=params.get("even_flow_epsilon", 0.10),
         )
         model, _stats = build_model(instance)
@@ -271,6 +295,82 @@ class WbiProvider:
             artifacts=artifacts,
             diagnostics=diagnostics,
             data={"provenance": result.provenance},
+        )
+
+    def _run_ingest_ebd(
+        self, node: WorkflowNode, params: dict[str, Any], context: Any
+    ) -> ProviderRunResult:
+        instance = self._resolve_instance(params, context)
+        if "ebd" not in params:
+            raise ValueError("Node parameters must provide 'ebd' (path to the private EBD extract)")
+        ebd_path = Path(context.resolve_path(str(params["ebd"])))
+        registry = load_registry(instance)
+        species = tuple(str(code) for code in params.get("species") or registry.codes())
+        months = tuple(int(month) for month in params.get("months", (5, 6, 7, 8)))
+        out_path = instance / "bird" / "derived" / str(params.get("out", "ebd_suite.csv"))
+        summary = ingest_ebd(
+            IngestSpec(
+                ebd_path=ebd_path,
+                out_csv=out_path,
+                species=species,
+                months=months,
+                complete_checklists_only=bool(params.get("complete_checklists_only", False)),
+            )
+        )
+        sidecar = out_path.with_name(out_path.name + ".provenance.json")
+        return ProviderRunResult(
+            status=RunStatus.SUCCESS,
+            outputs={
+                "derived_tables": {
+                    "rows_kept": summary.rows_kept,
+                    "per_species": summary.per_species,
+                }
+            },
+            artifacts={
+                "derived_table": self._relative_to_workdir(out_path, context),
+                "provenance": self._relative_to_workdir(sidecar, context),
+            },
+            data={"filters": summary.filters, "rows_scanned": summary.rows_scanned},
+        )
+
+    def _run_fit_antifunction(
+        self, node: WorkflowNode, params: dict[str, Any], context: Any
+    ) -> ProviderRunResult:
+        instance = self._resolve_instance(params, context)
+        mode = str(params.get("mode", "provided"))
+        if mode == "provided":
+            if "coefficients" not in params:
+                raise ValueError("'coefficients' path is required for mode=provided")
+            source = Path(context.resolve_path(str(params["coefficients"])))
+            path = stage_coefficients(source, instance)
+            outputs = {"coefficients": {"mode": "provided"}}
+        elif mode == "poisson":
+            for required in ("covariates", "species"):
+                if required not in params:
+                    raise ValueError(f"'{required}' is required for mode=poisson")
+            covariates = Path(context.resolve_path(str(params["covariates"])))
+            result = fit_poisson_glm(covariates)
+            path = update_instance_coefficients(
+                instance,
+                str(params["species"]),
+                result.coefficients,
+                fit_note="poisson_mle",
+            )
+            outputs = {
+                "coefficients": {
+                    "mode": "poisson",
+                    "converged": result.converged,
+                    "n_observations": result.n_observations,
+                    "values": result.coefficients.to_constants(),
+                }
+            }
+        else:
+            raise ValueError(f"Unknown fit mode '{mode}' (expected 'provided' or 'poisson')")
+        return ProviderRunResult(
+            status=RunStatus.SUCCESS,
+            outputs=outputs,
+            artifacts={"coefficients": self._relative_to_workdir(path, context)},
+            data={"instance": str(instance)},
         )
 
     @staticmethod
