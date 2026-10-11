@@ -18,6 +18,8 @@ from typing import Any
 
 import yaml
 
+from wbi_birds.taxonomy import TAXONOMY_SNAPSHOT
+
 ERROR = "error"
 WARNING = "warning"
 
@@ -217,7 +219,28 @@ def _validate_species_and_coefficients(root: Path, issues: list[Issue]) -> None:
                 )
             )
             continue
-        codes.add(str(entry["code"]))
+        code = str(entry["code"])
+        codes.add(code)
+        snapshot = TAXONOMY_SNAPSHOT.get(code)
+        if snapshot is None:
+            issues.append(
+                _issue(
+                    ERROR,
+                    "species.unknown_code",
+                    f"Species code '{code}' is not in the eBird taxonomy snapshot.",
+                    root / "config" / "species.yaml",
+                )
+            )
+        elif entry.get("common") and str(entry["common"]).lower() != snapshot["common"].lower():
+            issues.append(
+                _issue(
+                    WARNING,
+                    "species.common_mismatch",
+                    f"Common name '{entry['common']}' does not match taxonomy "
+                    f"'{snapshot['common']}' for code '{code}'.",
+                    root / "config" / "species.yaml",
+                )
+            )
         guild = entry.get("guild")
         if guild and guilds and guild not in guilds:
             issues.append(

@@ -87,3 +87,8 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - `wbi_birds.bird`: `AnticipationCoefficients` (paper/legacy `birdaf_*` naming), per-dtype `bird_unit_value` (`c1*swdvol + c2*hwdvol + c3*age + c4`), LP row coefficient compilation; `load_coefficients(instance, species)`.
 - Runner: `bird_coefficients` + `measure_scope` (`harvest` | `landscape`); the bird row is materialized on every period and its series is read **exactly from the LP solution** — post-hoc schedule reconstruction proved lossy for null-area accounting (diagnosed with per-constraint LHS values).
 - Findings: ws3 complex-yield resolvers cannot nest calls (KeyError) — the engine owns the row directly and works for runtime-created development types. Fixture `bird/coefficients.yaml` now carries the paper's RBNU coefficients. Suite: 51 tests green. E-P4.1 (#17) closed.
+
+## 2026-10-11 — E-P4.2 species/guild registry
+
+- `wbi_birds.taxonomy` (generated from the curated eBird taxonomy fetch: 9 codes with names) + `wbi_birds.registry` (manuscript suite: mature_conifer x4, mixedwood x2, early_seral x2, cavity x1; `load_registry`; `validate_taxonomy`).
+- Instance validator extended: unknown species code = error; common-name mismatch = warning. Fixture now carries the full nine-species suite + coefficients. Suite: 56 tests. E-P4.2 (#18) closed.
