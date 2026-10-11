@@ -32,6 +32,28 @@ class Ws3SectionBundle:
     trn: Path
 
 
+def locate_ws3_bundle(directory: Path | str) -> str:
+    """Return the model stem of the single complete ws3 section bundle in ``directory``.
+
+    A complete bundle is a set of files sharing one stem with all five
+    :data:`SECTION_SUFFIXES` present. Zero or multiple candidates are errors.
+    """
+    root = Path(directory)
+    if not root.is_dir():
+        raise MappingError(f"Bundle directory not found: {root}")
+    stems: dict[str, set[str]] = {}
+    for path in root.iterdir():
+        if path.is_file() and "." in path.name:
+            stem, suffix = path.name.rsplit(".", 1)
+            stems.setdefault(stem, set()).add(suffix)
+    complete = sorted(stem for stem, suffixes in stems.items() if set(SECTION_SUFFIXES) <= suffixes)
+    if not complete:
+        raise MappingError(f"No complete ws3 section bundle found in {root}")
+    if len(complete) > 1:
+        raise MappingError(f"Multiple ws3 bundles found in {root}: {complete}")
+    return complete[0]
+
+
 def load_ws3_sections(directory: Path | str, model_name: str) -> Ws3SectionBundle:
     """Validate and reference a femic-produced ws3 section-file set.
 

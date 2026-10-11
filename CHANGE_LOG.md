@@ -53,3 +53,7 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - PR #10 (E-P2 phase) merged to `main` (CI green).
 - E-P3 activated: children #11-#15; branch `feature/issue-3-ep3-core-engine`.
+
+## 2026-10-11 — E-P3.1 ws3 model builder
+
+- `wbi_birds.model.build_model(instance_root)`: builds a ws3 ForestModel from `inputs/ws3/` + run config (five section imports; period/horizon derivation; optional `model` block overrides); `mapping.locate_ws3_bundle` discovers the bundle stem. `ModelStats` records model/dtype/action/transition/curve counts. 5 tests; suite 32 passed. E-P3.1 (#11) closed.
