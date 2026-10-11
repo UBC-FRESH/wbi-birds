@@ -61,6 +61,8 @@ Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 
 ## E-P4 — Bird module
 
+Phase branch: `feature/issue-4-ep4-bird-module`. Child issues: #17 (anticipation row), #18 (registry), #19 (EBD ingestion), #20 (hooks + bird-row smoke).
+
 Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 
 - [ ] Coefficient/curve module (softwood / hardwood / age)

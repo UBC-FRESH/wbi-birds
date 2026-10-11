@@ -76,3 +76,8 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - `wbi_birds.reserves`: habitat-only reserve selection (initial-inventory age criterion) + harvest exclusion. `wbi_birds.b3`: sequential-vs-integrated comparison, matched-outcome interpolation, deterministic JSON record (`results/b3/...`); explicit unmatched-note when the target is outside the frontier (proxy row until E-P4).
 - `wbi.compile_instance` execution hook: femic ws3-bundle → instance (`inputs/ws3/` + `management_unit` update); full chain (bundle → instance → model → scenario) runs via `freshforge run` with evidence (chain smoke green).
 - Suite: 47 tests green. E-P3 children #11–#15 all closed; phase PR opened to main.
+
+## 2026-10-11 — E-P3 merged to main (PR #16, CI green); E-P4 activated
+
+- PR #16 merged; phase branch deleted.
+- E-P4 activated: children #17-#20; branch `feature/issue-4-ep4-bird-module`.
