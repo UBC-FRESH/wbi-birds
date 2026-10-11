@@ -9,7 +9,7 @@ Pattern repos: `UBC-FRESH/fresh-daugherty` (closest analogue), `UBC-FRESH/fhops`
 ## Reuse boundary
 
 - Depend on `UBC-FRESH/ws3` (ForestModel, LP machinery, Model I even-flow + ε constraints). **Do not re-implement ws3.**
-- `UBC-FRESH/femic` is the control plane for forest-estate model building/running (incl. ws3 via `femic.ws3_bridge`); compose its FreshForge providers/outputs rather than reimplementing model construction. No import-coupling at runtime; coupling = providers + file contracts (`UBC-FRESH/femic#316`).
+- `UBC-FRESH/femic` is the control plane for forest-estate model building/running (incl. ws3 via `femic.ws3_bridge`); compose its FreshForge providers/outputs rather than reimplementing model construction. No import-coupling at runtime; coupling = providers + file contracts (femic → `inputs/ws3/` Woodstock sections; see `planning/femic-map.md`; `UBC-FRESH/femic#316`).
 - Bird anticipation curves are served by the species-generic module in this repo (lineage: `fitBirdBiomassModel`).
 - **Raw eBird data are never redistributed**; derived products only (see manuscript repo `planning/ebird-data-request*.md`). Private raw store: submodule `external/wbi-ebird-data` (DataLad); CI does not init submodules; never publish its content.
 - Workflow layer: **FreshForge** — pipeline graphs in `workflows/`, provider `wbi` via the `freshforge.providers` entry point; evidence manifests are the run-record contract; FreshForge stays domain-neutral while this repo owns node execution.

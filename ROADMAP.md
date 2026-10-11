@@ -28,10 +28,12 @@ Status: **complete** (2026-10-11)
 
 ## E-P2 — Data contract & instance compilation
 
+Status: **complete** (2026-10-11).
+
 Goal: documented instance layout + provenance; femic-consumption contract; scenario/result schemas.
 
 - [x] Instance directory contract + validation (`wbi-birds instance validate`; fixture tests green)
-- [ ] femic output consumption path (documented; tested with fixtures)
+- [x] femic output consumption path — `planning/femic-map.md` v1 + `wbi_birds.mapping` (fixture-tested with a real `tsa24_clipped` slice)
 - [x] Scenario/result schemas (pydantic) + round-trip tests (`wbi_birds.scenarios`; suite green)
 
 Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branch: `feature/issue-2-ep2-data-contract`.

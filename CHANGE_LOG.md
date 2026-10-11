@@ -43,3 +43,8 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 ## 2026-10-11 — E-P2.3 schemas complete
 
 - `wbi_birds.scenarios`: pydantic schemas (ScenarioSpec/ScenarioSet/ScenarioResult + solver/even-flow config) with YAML/JSON round-trip helpers and consistency rules (ordered ε levels, unique ids, MU match). 11 new tests; suite 22 passed. E-P2.3 (#9) closed.
+
+## 2026-10-11 — E-P2.2 femic mapping complete; E-P2 phase closed
+
+- `wbi_birds.mapping` (load/stage ws3 Woodstock section files) + `planning/femic-map.md` v1 (boundary, contract, open questions for femic#316); real `tsa24_clipped` fixture from the ws3 examples.
+- Suite green: 27 tests. E-P2 children (#7/#8/#9) closed; parent #2 closed; phase PR opened to main.
