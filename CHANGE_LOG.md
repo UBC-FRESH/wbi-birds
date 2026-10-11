@@ -39,3 +39,7 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - Instance validator implemented (`wbi_birds.instance`, CLI `wbi-birds instance validate`): required files/schemas, species-coefficient consistency, checksum verification, raw-eBird boundary scan. Fixture + 6 tests; suite green (11 passed). E-P2.1 (#7) closed.
 - B3 formulation locked upstream to option 1 (habitat-only reserve network vs integrated ε-constraints, `UBC-FRESH/wbi-birds-2021#14`); engine support task added under E-P3.
+
+## 2026-10-11 — E-P2.3 schemas complete
+
+- `wbi_birds.scenarios`: pydantic schemas (ScenarioSpec/ScenarioSet/ScenarioResult + solver/even-flow config) with YAML/JSON round-trip helpers and consistency rules (ordered ε levels, unique ids, MU match). 11 new tests; suite 22 passed. E-P2.3 (#9) closed.

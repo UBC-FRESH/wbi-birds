@@ -32,7 +32,7 @@ Goal: documented instance layout + provenance; femic-consumption contract; scena
 
 - [x] Instance directory contract + validation (`wbi-birds instance validate`; fixture tests green)
 - [ ] femic output consumption path (documented; tested with fixtures)
-- [ ] Scenario/result schemas (pydantic) + round-trip tests
+- [x] Scenario/result schemas (pydantic) + round-trip tests (`wbi_birds.scenarios`; suite green)
 
 Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branch: `feature/issue-2-ep2-data-contract`.
 
