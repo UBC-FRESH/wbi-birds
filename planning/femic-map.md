@@ -40,12 +40,21 @@ framework is in place and hashes are populated at the first real export.
 from `UBC-FRESH/ws3`; MIT; provenance in the fixture README). It is replaced by a genuine femic
 export for one AOI MU when `femic#316` lands.
 
-## Open questions (for femic#316)
+## Resolved contract (P113, 2026-10-11)
 
-1. Which artifact set ships per MU — bundle tables, ws3 sections, or both?
-2. Where do the five MU instances live: femic-style `external/` overlays, or the engine repo's
-   `instances/` directory?
-3. Does femic export manifest fragments/checksums the engine can ingest directly?
+1. **Artifact set per MU**: both — each instance keeps the model-input bundle
+   (`data/model_input_bundle/`) and exports Woodstock CSVs (`output/woodstock/`) plus the ws3
+   sections (`output/ws3/tsa<code>.{lan,are,yld,act,trn}`); the engine stages the sections only.
+2. **Placement**: five public DataLad instance repos under `UBC-FRESH`
+   (`femic-tsa08|16|24|40|41-instance`), wired as `external/` submodules of `femic`; the engine
+   consumes their exported bundles.
+3. **Checksums/manifests**: dataset checksums live in femic `metadata/required_datasets.yaml`;
+   per-run provenance is in the instance `runtime/logs/*manifest*.json`; the ws3 handoff is
+   delivered by the `femic.ws3_bridge` node (`femic export ws3-sections`).
+
+Graphs: `external/femic-tsa<code>-instance/workflows/freshforge/tsa<code>_model_build_workflow.yaml`
+(`validate_case -> geospatial_preflight -> compile_upstream -> btc_post_tipsy -> export_woodstock
+-> ws3_bridge`); `freshforge validate` + `plan` green for all five.
 
 ## Verification
 
