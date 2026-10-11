@@ -34,6 +34,8 @@ Goal: documented instance layout + provenance; femic-consumption contract; scena
 - [ ] femic output consumption path (documented; tested with fixtures)
 - [ ] Scenario/result schemas (pydantic) + round-trip tests
 
+Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branch: `feature/issue-2-ep2-data-contract`.
+
 ## E-P3 — Core engine
 
 Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
