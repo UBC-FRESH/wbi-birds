@@ -116,3 +116,9 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - `wbi_birds.parity.compare_instance_results`: scans `<instance>/results/scenarios/**`, derives MU/scenario from the path, compares against long-format reference tables.
 - FreshForge `wbi.verify_parity` hook: writes `results/parity/<label>-parity.{json,md}`, `parity.failed` warnings per metric, `strict: true` fails the node; parity summary in node outputs (and thus the evidence manifest). 2 hook tests (within-tolerance + warning/strict-failure); suite 77 green. E-P5.2 (#23) closed.
+
+## 2026-10-11 — E-P5.3 prep (acquisition path, CLI, reproducibility draft)
+
+- `planning/parity-reference-acquisition.md`: legacy reference locations (outputs not in the repos), export checklist to the long-format contract, acquisition options, gating.
+- `scripts/parity_check.py`: standalone parity CLI (reports under `results/parity/`; `--strict` exit code).
+- `results/REPRODUCIBILITY.md`: draft framework (environment, verification, fixture chain, real-data prerequisites, parity, release placeholders). CLI tests added; suite 79 green.
