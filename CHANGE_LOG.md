@@ -107,3 +107,7 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - PR #21 merged; phase branch deleted.
 - E-P5 activated: children #22-#24; branch `feature/issue-5-ep5-parity` (real parity gated on femic#316).
+
+## 2026-10-11 — E-P5.1 parity tolerance module
+
+- `wbi_birds.parity`: engine/reference long-format alignment, abs+rel tolerance policy, deterministic comparison records + JSON/Markdown reports (`results/parity/`); missing/extra rows are explicit failures with reasons. 6 tests; suite 75 green. E-P5.1 (#22) closed.

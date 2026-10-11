@@ -78,7 +78,7 @@ Phase branch: `feature/issue-5-ep5-parity`. Child issues: #22 (tolerance module)
 
 Goal: reproduce legacy RBNU / 5-TSA results within tolerance; diagnostics.
 
-- [ ] Legacy parity fixtures + tolerance report
+- [x] Legacy parity tolerance module — `wbi_birds.parity` (alignment, abs+rel tolerances, deterministic reports; fixture tests)
 - [ ] `results/REPRODUCIBILITY.md`
 - [ ] Anomaly adjudication with the manuscript claims map
 - [ ] FreshForge `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers`
