@@ -81,3 +81,24 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - PR #16 merged; phase branch deleted.
 - E-P4 activated: children #17-#20; branch `feature/issue-4-ep4-bird-module`.
+
+## 2026-10-11 — E-P4.1 bird anticipation row
+
+- `wbi_birds.bird`: `AnticipationCoefficients` (paper/legacy `birdaf_*` naming), per-dtype `bird_unit_value` (`c1*swdvol + c2*hwdvol + c3*age + c4`), LP row coefficient compilation; `load_coefficients(instance, species)`.
+- Runner: `bird_coefficients` + `measure_scope` (`harvest` | `landscape`); the bird row is materialized on every period and its series is read **exactly from the LP solution** — post-hoc schedule reconstruction proved lossy for null-area accounting (diagnosed with per-constraint LHS values).
+- Findings: ws3 complex-yield resolvers cannot nest calls (KeyError) — the engine owns the row directly and works for runtime-created development types. Fixture `bird/coefficients.yaml` now carries the paper's RBNU coefficients. Suite: 51 tests green. E-P4.1 (#17) closed.
+
+## 2026-10-11 — E-P4.2 species/guild registry
+
+- `wbi_birds.taxonomy` (generated from the curated eBird taxonomy fetch: 9 codes with names) + `wbi_birds.registry` (manuscript suite: mature_conifer x4, mixedwood x2, early_seral x2, cavity x1; `load_registry`; `validate_taxonomy`).
+- Instance validator extended: unknown species code = error; common-name mismatch = warning. Fixture now carries the full nine-species suite + coefficients. Suite: 56 tests. E-P4.2 (#18) closed.
+
+## 2026-10-11 — E-P4.3 EBD-derived ingestion
+
+- `wbi_birds.ingest`: streaming filter of the private EBD extract (species suite x breeding months, optional complete-checklists-only) into derived point-level CSVs with SHA256-stamped provenance sidecars; legacy `X` -> 0.0 convention; observer identifiers never copied. Tab-delimited fixture with noise rows; 6 tests. Suite: 62 tests. E-P4.3 (#19) closed.
+
+## 2026-10-11 — E-P4.4 fitting + hooks; E-P4 phase complete
+
+- `wbi_birds.fit`: `stage_coefficients` (provided/R-lineage mode, taxonomy-validated, deterministic output) and engine-native Poisson MLE (`fit_poisson_glm`, feature-standardized L-BFGS-B, gradient-based convergence flag); merge preserves other species and marks `source.fit`.
+- FreshForge hooks: `wbi.ingest_ebd` and `wbi.fit_antifunction` execute; `wbi.run_scenarios` supports `bird_species` + `measure_scope` (bird row). Full chain smoke: ingest → fit → compile → build → bird scenario via `freshforge run` with evidence; positive landscape bird total verified.
+- Suite: 69 tests green. E-P4 children #17–#20 all closed; phase PR opened.

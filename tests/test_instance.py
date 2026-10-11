@@ -40,9 +40,8 @@ def test_species_without_coefficients(tmp_path: Path) -> None:
     species = root / "config" / "species.yaml"
     species.write_text(
         species.read_text().replace(
-            "  - {code: borchi2, common: Boreal Chickadee, guild: mature_conifer}",
-            "  - {code: borchi2, common: Boreal Chickadee, guild: mature_conifer}\n"
-            "  - {code: yerwar, common: Yellow-rumped Warbler, guild: mixedwood}",
+            "guilds: [",
+            "  - {code: nope1, common: Nope, guild: mature_conifer}\nguilds: [",
         )
     )
     assert "coefficients.missing_species" in _codes(validate_instance(root))

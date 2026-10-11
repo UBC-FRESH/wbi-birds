@@ -63,12 +63,14 @@ Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 
 Phase branch: `feature/issue-4-ep4-bird-module`. Child issues: #17 (anticipation row), #18 (registry), #19 (EBD ingestion), #20 (hooks + bird-row smoke).
 
+Status: **complete** (2026-10-11).
+
 Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 
-- [ ] Coefficient/curve module (softwood / hardwood / age)
-- [ ] EBD-derived ingestion path (auk-style filtering; derived tables only)
-- [ ] Species/guild registry (suite per manuscript P2.3)
-- [ ] FreshForge `run_node` hooks for `ingest_ebd` / `fit_antifunction`
+- [x] Coefficient/curve module — `wbi_birds.bird` (per-dtype `bird = c1*swdvol + c2*hwdvol + c3*age + c4`; LP-materialized row; `measure_scope`)
+- [x] EBD-derived ingestion path — `wbi_birds.ingest` (streaming suite/month/complete filters; derived CSV + provenance sidecar; no observer IDs)
+- [x] Species/guild registry — `wbi_birds.registry` + taxonomy snapshot (9-species suite; validator checks codes/names; fixture carries the full suite)
+- [x] FreshForge `run_node` hooks for `ingest_ebd` / `fit_antifunction` — full five-node chain smoke with evidence green
 
 ## E-P5 — Verification & parity
 

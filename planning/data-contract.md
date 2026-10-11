@@ -25,6 +25,15 @@ Status: **draft for review** (E-P2.1 / #7). The femic → inputs mapping is fixe
     scratch/               # ignored working area
 ```
 
+## Anticipation row (`bird`)
+
+- Coefficients live in `bird/coefficients.yaml` (`species: {code: {swvol, hwvol, age, intercept}}`); legacy WBI naming (`birdaf_*_coeff`).
+- The engine evaluates the row per development type: `bird(age) = c1*swdvol(age) + c2*hwdvol(age) + c3*age + c4` (area-weighted in LP coefficients). It is **not** a ws3 complex yield — ws3 resolvers cannot nest calls, and the engine also needs the row to cover runtime-created development types.
+- Derived tables: `wbi_birds.ingest` streams the private EBD extract into derived CSVs + provenance sidecars (suite/months/complete-checklist filters; observer identifiers dropped).
+- Fitting: `provided` (R-lineage coefficients staged + validated) or engine-native `poisson` MLE (`wbi_birds.fit`); both merge into `bird/coefficients.yaml` with a `source.fit` marker.
+- Canonical suite: nine species across four guilds (`wbi_birds.registry`); codes and common names are checked against the eBird taxonomy snapshot (`wbi_birds.taxonomy`).
+- `measure_scope`: `harvest` (default) or `landscape` (row sums over `null` + `harvest` prescriptions). Bird scenarios materialize the row on every period (sentinel bounds where unconstrained) and record the per-period series **exactly from the LP solution**.
+
 ## Results layout
 
 `results/scenarios/<management-unit>/<scenario-id>.csv` — per-period table
