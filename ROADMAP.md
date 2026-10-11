@@ -66,7 +66,7 @@ Phase branch: `feature/issue-4-ep4-bird-module`. Child issues: #17 (anticipation
 Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 
 - [x] Coefficient/curve module — `wbi_birds.bird` (per-dtype `bird = c1*swdvol + c2*hwdvol + c3*age + c4`; LP-materialized row; `measure_scope`)
-- [ ] EBD-derived ingestion path (auk-style filtering; derived tables only)
+- [x] EBD-derived ingestion path — `wbi_birds.ingest` (streaming suite/month/complete filters; derived CSV + provenance sidecar; no observer IDs)
 - [x] Species/guild registry — `wbi_birds.registry` + taxonomy snapshot (9-species suite; validator checks codes/names; fixture carries the full suite)
 - [ ] FreshForge `run_node` hooks for `ingest_ebd` / `fit_antifunction`
 

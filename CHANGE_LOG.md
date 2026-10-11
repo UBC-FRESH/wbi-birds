@@ -92,3 +92,7 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - `wbi_birds.taxonomy` (generated from the curated eBird taxonomy fetch: 9 codes with names) + `wbi_birds.registry` (manuscript suite: mature_conifer x4, mixedwood x2, early_seral x2, cavity x1; `load_registry`; `validate_taxonomy`).
 - Instance validator extended: unknown species code = error; common-name mismatch = warning. Fixture now carries the full nine-species suite + coefficients. Suite: 56 tests. E-P4.2 (#18) closed.
+
+## 2026-10-11 — E-P4.3 EBD-derived ingestion
+
+- `wbi_birds.ingest`: streaming filter of the private EBD extract (species suite x breeding months, optional complete-checklists-only) into derived point-level CSVs with SHA256-stamped provenance sidecars; legacy `X` -> 0.0 convention; observer identifiers never copied. Tab-delimited fixture with noise rows; 6 tests. Suite: 62 tests. E-P4.3 (#19) closed.
