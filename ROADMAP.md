@@ -37,6 +37,7 @@ Goal: documented instance layout + provenance; femic-consumption contract; scena
 Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branch: `feature/issue-2-ep2-data-contract`.
 
 - [x] FreshForge workflow layer adopted (plan-only provider + pipeline/matrix specs) — `planning/workflow-blueprint.md`
+- [ ] AOI model-build pipeline dependency (femic+FreshForge, TSA08/16/24/40/41) — `UBC-FRESH/femic#316`
 
 - [x] Private raw-data store submodule (`external/wbi-ebird-data`, DataLad, private)
 
@@ -48,7 +49,8 @@ Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 - [ ] ε-constraint scenario grid runner (11 scenarios × TSA × species/guild)
 - [ ] Output contract (results tables) + smoke tests
 - [ ] Solver config: HiGHS default; Gurobi switch documented; backend recorded in run metadata
-- [ ] FreshForge `run_node` hooks for `build_model` / `run_scenarios` (+ evidence-manifest smoke)
+- [ ] FreshForge `run_node` hooks for `run_scenarios` (+ evidence-manifest smoke)
+- [ ] femic composition: swap interim `compile_instance`/`build_model` adapters for femic model-build stages
 
 ## E-P4 — Bird module
 
@@ -75,3 +77,4 @@ Goal: `v1.0.0` release with DOI.
 - [ ] Docs site complete (quickstart, contracts, CLI); GitHub Pages publishing
 - [ ] Example instance + notebook
 - [ ] Tag `v1.0.0` + Zenodo DOI + `CITATION.cff`
+- [ ] Self-bootstrapping README acceptance: fresh environment + README (public lane) reproduces headline results

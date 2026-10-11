@@ -30,6 +30,21 @@ process is the artifact, reviewable and testable, not a chain of scripts.
 metrics → figures/claims map. Raw eBird content never leaves the private store; nodes exchange
 **derived** products only.
 
+## Composition with femic
+
+**Ownership:** `UBC-FRESH/femic` is the control plane for forest-estate model building/running (incl.
+ws3 via `femic.ws3_bridge` — Woodstock CSVs → ws3 section files). The WBI engine owns the
+bird/tradeoff/analysis layer and orchestrates.
+
+**Target graph per MU:** `wbi.ingest_ebd` → `wbi.fit_antifunction` →
+`femic.model_build.{inventory, source_preflight, typed_compile_emit, dataset_lint_import, structural_verify, package_evidence}`
+→ `wbi.run_scenarios` → `wbi.compute_frontiers` → `wbi.verify_parity` / `wbi.analyze_frontiers`.
+
+**Interim:** while femic's model-build execution hooks land, the WBI nodes `compile_instance` /
+`build_model` act as adapters delegating to femic's CLI/API; they are replaced by direct femic stage
+references once executable. AOI model-build dependency: `UBC-FRESH/femic#316` (duplicate-tracking:
+engine #8).
+
 ## Run matrices
 
 `workflows/wbi_mu_matrix.yaml` expands `workflows/wbi_pipeline_template.yaml` across the five
@@ -49,10 +64,21 @@ MU display names: filled from the TSR registry once verified (E-P2 TODO).
 
 | Phase | Work |
 |---|---|
-| E-P2 | Provider declaration + pipeline/matrix specs (this blueprint) — **done, plan-only** |
-| E-P3 | `run_node` hooks for `build_model` / `run_scenarios` (+ evidence in CI smoke) |
+| E-P2 | Provider declaration + pipeline/matrix specs (this blueprint) — **done, plan-only**; AOI model-build dependency registered (`UBC-FRESH/femic#316`) |
+| E-P3 | `run_node` hooks for `run_scenarios` (+ evidence in CI smoke); swap interim `compile_instance`/`build_model` adapters for femic model-build stages |
 | E-P4 | `run_node` hooks for `ingest_ebd` / `fit_antifunction` |
 | E-P5 | `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers` |
+
+## Self-bootstrapping requirement
+
+A user in a fresh environment must reproduce the project from the README alone, via two data lanes:
+
+- **public lane:** released derived inputs snapshot (Zenodo DOI at release) — no private access;
+- **team lane:** private annex data (`external/wbi-ebird-data`, DataLad) for the raw-eBird runs.
+
+Bootstrap = pinned installs (engine + femic + ws3 + freshforge) → data lane → `freshforge run` per
+management unit (evidence manifests as run records). Acceptance test at E-P6: README-only
+reproduction of the headline results through the public lane.
 
 ## Alpha caveats (pin: `freshforge>=0.1.0a5,<0.2`)
 

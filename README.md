@@ -28,6 +28,27 @@ pytest
 wbi-birds --help
 ```
 
+## Bootstrap (self-reproduction)
+
+Target bootstrap for a fresh environment (final acceptance at E-P6; two-lane data model — see `planning/workflow-blueprint.md`):
+
+```bash
+# 1. pinned environment: engine + forest-estate control plane + workflow layer
+python -m venv .venv && . .venv/bin/activate
+pip install -e .[dev]          # engine (includes the freshforge pin)
+pip install -e ../femic        # femic: model building/running incl. ws3 (sibling checkout)
+
+# 2. data lane (choose one)
+#    public lane — released derived inputs snapshot (Zenodo DOI at release); no private access needed
+#    team lane   — private annex data
+git submodule update --init external/wbi-ebird-data && datalad get -r external/wbi-ebird-data
+
+# 3. run the pipeline per management unit
+freshforge plan workflows/wbi_pipeline.yaml
+freshforge run  workflows/wbi_pipeline.yaml --workdir . --namespace tsa40 \
+  --evidence results/workflow/tsa40-evidence.json
+```
+
 ## Reproduction boundary
 
 - Raw eBird data are **not** redistributed (see the manuscript repo's `planning/ebird-data-request*.md`).

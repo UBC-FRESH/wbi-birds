@@ -82,7 +82,7 @@ species:
 
 ## Boundaries
 
-- femic → `inputs/`: file contract only, documented in E-P2.2; **no femic imports**
+- femic is the control plane for forest-estate model building/running (WS → ws3 sections via `femic.ws3_bridge`); the engine composes femic FreshForge providers/outputs. No femic imports in engine runtime; coupling = providers + file contracts (E-P2.2; `UBC-FRESH/femic#316`)
 - eBird: raw data stays outside all instances; only coefficients/derived products inside
 - ws3: public API only
 

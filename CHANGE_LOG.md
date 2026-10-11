@@ -28,3 +28,9 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - Provider `wbi` added (plan-only; `src/wbi_birds/forge.py`, entry point `freshforge.providers`) declaring 8 pipeline node types.
 - Specs: `workflows/wbi_pipeline.yaml`, `workflows/wbi_pipeline_template.yaml`, `workflows/wbi_mu_matrix.yaml` (5 MUs); blueprint: `planning/workflow-blueprint.md`.
 - Validated with freshforge 0.1.0a5: `providers` (wbi listed), `validate` + `plan` green, `matrix expand` = 5 cases, 0 diagnostics. Execution hooks scheduled per ROADMAP E-P3–E-P5.
+
+## 2026-10-11 — femic ownership correction + self-bootstrapping requirement
+
+- femic acknowledged as control plane for forest-estate model building/running (incl. ws3 via `femic.ws3_bridge`); target graph composes femic model-build stages; interim `compile_instance`/`build_model` adapters flagged for E-P3 swap. Request issue: `UBC-FRESH/femic#316`.
+- Self-bootstrapping requirement recorded: fresh env + README → headline results (public lane = released derived inputs; team lane = private annex). README bootstrap section added; acceptance at E-P6.
+- Blueprint/contract/AGENTS/ROADMAP updated.
