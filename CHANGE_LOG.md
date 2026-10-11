@@ -128,3 +128,10 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - E-P6 children: #26 (docs), #27 (example + notebook), #28 (release); branch `feature/issue-6-ep6-release`.
 - Docs site: quickstart, concepts, workflows, parity, CLI, reproducibility, API reference (autodoc; freshforge mocked); `sphinx-build -W` green; GitHub Pages enabled (`build_type: workflow`).
 - Manuscript repo renamed to `UBC-FRESH/wbi-birds-manuscript` (references updated across both repos).
+
+## 2026-10-11 — E-P6.2 example instance + notebook
+
+- `examples/`: packaged fixture estate, ws3 sections, EBD sample, provided coefficients, packaged parity reference; `quickstart.ipynb` walks ingest -> fit -> compile -> build -> scenario -> parity and is executed by the CI `examples` job.
+- `workflows/wbi_example.yaml` (six-node graph); `examples` extra (nbconvert/ipykernel/matplotlib); docs page + examples README.
+- Hardened machine-readable FreshForge invocations against `FORCE_COLOR`/`CLICOLOR_FORCE` (Rich forces ANSI colour whenever they are present, breaking `json.loads`); upstream report filed at `UBC-FRESH/freshforge#119`.
+- Suite: 79 tests green; notebook executes end-to-end (5/5 cells).

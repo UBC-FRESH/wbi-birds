@@ -46,6 +46,7 @@ dev = [
   "sphinx-rtd-theme>=2",
   "twine>=5",
 ]
+examples = ["nbconvert>=7", "ipykernel>=6.29", "matplotlib>=3.9"]
 quality = ["ruff>=0.5"]
 release = ["build>=1.2", "twine>=5"]
 test = ["pytest>=8"]

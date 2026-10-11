@@ -11,7 +11,7 @@ import yaml
 
 pytest.importorskip("freshforge")
 
-from conftest import FIXTURE_DIR, INSTANCE_FIXTURE
+from conftest import FIXTURE_DIR, FRESH_PROCESS_ENV, INSTANCE_FIXTURE
 
 EBD_FIXTURE = Path(__file__).parent / "fixtures" / "ebd" / "sample_ebd.txt"
 
@@ -112,6 +112,7 @@ def test_freshforge_full_chain(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         cwd=str(tmp_path),
+        env=FRESH_PROCESS_ENV,
     )
     assert proc.returncode == 0, f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
     result = json.loads(proc.stdout)

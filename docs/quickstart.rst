@@ -26,7 +26,7 @@ Command line::
     wbi-birds --help
     wbi-birds instance validate <instance>
 
-Next: :doc:`concepts` for the engine model, :doc:`workflows` for driving the
-FreshForge graphs, and :doc:`parity` for the verification story. The real-data
-lane (private eBird extract + femic model builds) is described in
-:doc:`reproducibility`.
+Next: :doc:`examples` for the runnable notebook, :doc:`concepts` for the engine
+model, :doc:`workflows` for driving the FreshForge graphs, and :doc:`parity` for
+the verification story. The real-data lane (private eBird extract + femic model
+builds) is described in :doc:`reproducibility`.

@@ -14,6 +14,7 @@ Built on the UBC-FRESH stack: `ws3
    :caption: Contents
 
    quickstart
+   examples
    concepts
    workflows
    parity

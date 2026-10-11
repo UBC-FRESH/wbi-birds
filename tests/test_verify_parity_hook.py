@@ -11,7 +11,7 @@ import pytest
 
 pytest.importorskip("freshforge")
 
-from conftest import FIXTURE_DIR, FIXTURE_MODEL, INSTANCE_FIXTURE
+from conftest import FIXTURE_DIR, FIXTURE_MODEL, FRESH_PROCESS_ENV, INSTANCE_FIXTURE
 
 from wbi_birds.mapping import load_ws3_sections, stage_ws3_sections
 from wbi_birds.model import build_model
@@ -89,6 +89,7 @@ def _run(workdir: Path, workflow: Path, base: Path) -> subprocess.CompletedProce
         capture_output=True,
         text=True,
         cwd=str(base),
+        env=FRESH_PROCESS_ENV,
     )
 
 

@@ -1,0 +1,11 @@
+source: {ebd_release: "fixture", fit_script: "fixture", fitted_on: "2026-10-11"}
+species:
+  rebnut: {intercept: 0.7594, swvol: 0.002181, hwvol: -0.011763, age: -0.0008235}
+  borchi2: {intercept: 0.5, swvol: 0.001, hwvol: -0.005, age: -0.0005}
+  gockin: {intercept: 0.8, swvol: 0.0015, hwvol: -0.004, age: -0.0003}
+  brncre: {intercept: 0.4, swvol: 0.0012, hwvol: -0.003, age: 0.0004}
+  yerwar: {intercept: 1.2, swvol: 0.0005, hwvol: 0.0008, age: -0.001}
+  swathr: {intercept: 0.6, swvol: 0.0009, hwvol: 0.0012, age: 0.0001}
+  whtspa: {intercept: 0.3, swvol: -0.0002, hwvol: 0.002, age: -0.0015}
+  tenwar: {intercept: 0.2, swvol: -0.0004, hwvol: 0.0025, age: -0.0018}
+  yebsap: {intercept: 0.1, swvol: 0.0002, hwvol: 0.0015, age: 0.0006}
