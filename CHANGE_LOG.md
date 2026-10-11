@@ -81,3 +81,9 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - PR #16 merged; phase branch deleted.
 - E-P4 activated: children #17-#20; branch `feature/issue-4-ep4-bird-module`.
+
+## 2026-10-11 — E-P4.1 bird anticipation row
+
+- `wbi_birds.bird`: `AnticipationCoefficients` (paper/legacy `birdaf_*` naming), per-dtype `bird_unit_value` (`c1*swdvol + c2*hwdvol + c3*age + c4`), LP row coefficient compilation; `load_coefficients(instance, species)`.
+- Runner: `bird_coefficients` + `measure_scope` (`harvest` | `landscape`); the bird row is materialized on every period and its series is read **exactly from the LP solution** — post-hoc schedule reconstruction proved lossy for null-area accounting (diagnosed with per-constraint LHS values).
+- Findings: ws3 complex-yield resolvers cannot nest calls (KeyError) — the engine owns the row directly and works for runtime-created development types. Fixture `bird/coefficients.yaml` now carries the paper's RBNU coefficients. Suite: 51 tests green. E-P4.1 (#17) closed.

@@ -25,6 +25,12 @@ Status: **draft for review** (E-P2.1 / #7). The femic → inputs mapping is fixe
     scratch/               # ignored working area
 ```
 
+## Anticipation row (`bird`)
+
+- Coefficients live in `bird/coefficients.yaml` (`species: {code: {swvol, hwvol, age, intercept}}`); legacy WBI naming (`birdaf_*_coeff`).
+- The engine evaluates the row per development type: `bird(age) = c1*swdvol(age) + c2*hwdvol(age) + c3*age + c4` (area-weighted in LP coefficients). It is **not** a ws3 complex yield — ws3 resolvers cannot nest calls, and the engine also needs the row to cover runtime-created development types.
+- `measure_scope`: `harvest` (default) or `landscape` (row sums over `null` + `harvest` prescriptions). Bird scenarios materialize the row on every period (sentinel bounds where unconstrained) and record the per-period series **exactly from the LP solution**.
+
 ## Results layout
 
 `results/scenarios/<management-unit>/<scenario-id>.csv` — per-period table

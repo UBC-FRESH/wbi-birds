@@ -15,12 +15,13 @@ import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from functools import partial
-from typing import Any
+from typing import Any, Literal
 
 from ws3 import opt as ws3opt
 from ws3.forest import ForestModel
 
 from wbi_birds import __version__
+from wbi_birds.bird import AnticipationCoefficients, compile_bird_coefficients
 from wbi_birds.scenarios import ScenarioResult, SolverResult
 
 VALID_STATUSES = ("optimal", "infeasible", "unbounded")
@@ -39,6 +40,8 @@ class ProblemSpec:
     constraint_expr: str
     harvest_acodes: tuple[str, ...] = ("harvest",)
     acodes: tuple[str, ...] = ("null", "harvest")
+    measure_scope: Literal["harvest", "landscape"] = "harvest"
+    bird_coefficients: AnticipationCoefficients | None = None
     even_flow_epsilon: float | None = 0.10
     even_flow_ref_period: int | None = None
 
@@ -111,11 +114,18 @@ def run_scenario(
 
     _prepare_model(fm)
 
+    row_acodes = tuple(spec.acodes) if spec.measure_scope == "landscape" else spec.harvest_acodes
+    if spec.bird_coefficients is not None:
+        row_func: Callable[..., Any] = partial(
+            compile_bird_coefficients,
+            coefficients=spec.bird_coefficients,
+            acodes=row_acodes,
+        )
+    else:
+        row_func = partial(_coeff_flow, expr=spec.constraint_expr, acodes=row_acodes)
     coeff_funcs: dict[str, Callable[..., Any]] = {
         "z": partial(_coeff_z, expr=spec.objective_expr),
-        f"row_{spec.constraint_row}": partial(
-            _coeff_flow, expr=spec.constraint_expr, acodes=spec.harvest_acodes
-        ),
+        f"row_{spec.constraint_row}": row_func,
     }
     cflw_e: dict[str, Any] | None = None
     if spec.even_flow_epsilon is not None:
@@ -129,6 +139,7 @@ def run_scenario(
 
     cgen_data: dict[str, Any] | None = None
     floor_provenance: dict[str, float] | float | None = None
+    floors: dict[int, float] | None = None
     if constraint_floor is not None:
         if isinstance(constraint_floor, Mapping):
             floors = {int(t): float(v) for t, v in constraint_floor.items()}
@@ -136,6 +147,14 @@ def run_scenario(
         else:
             floors = dict.fromkeys(fm.periods, float(constraint_floor))
             floor_provenance = float(constraint_floor)
+    if spec.bird_coefficients is not None:
+        # Materialize the bird row on every period (sentinel bound where unconstrained)
+        # so its exact per-period LP values can be read back after the solve.
+        bird_floors = dict.fromkeys(fm.periods, -1e12)
+        if floors:
+            bird_floors.update(floors)
+        cgen_data = {f"row_{spec.constraint_row}": {"lb": bird_floors}}
+    elif floors is not None:
         cgen_data = {f"row_{spec.constraint_row}": {"lb": floors}}
 
     started = time.monotonic()
@@ -173,19 +192,34 @@ def run_scenario(
         harvest_series = [
             float(fm.compile_product(t, spec.objective_expr, acode="harvest")) for t in fm.periods
         ]
-        constraint_series = [
-            float(fm.compile_product(t, spec.constraint_expr, acode="harvest")) for t in fm.periods
-        ]
+        if spec.bird_coefficients is not None:
+            lhs_values = problem.get_all_constraints_lhs_values()
+            constraint_series = [
+                float(lhs_values.get(f"gen-lb_{t:03d}_row_{spec.constraint_row}", 0.0))
+                for t in fm.periods
+            ]
+        elif spec.measure_scope == "landscape":
+            constraint_series = [
+                float(fm.compile_product(t, spec.constraint_expr)) for t in fm.periods
+            ]
+        else:
+            constraint_series = [
+                float(fm.compile_product(t, spec.constraint_expr, acode="harvest"))
+                for t in fm.periods
+            ]
 
     diagnostics = [f"ws3 solver status: {raw_status}"]
     result_provenance = {
         "objective_expr": spec.objective_expr,
         "constraint_expr": spec.constraint_expr,
         "even_flow_epsilon": spec.even_flow_epsilon,
+        "measure_scope": spec.measure_scope,
         "constraint_floor": floor_provenance,
     }
     if objective_value is not None:
         result_provenance["objective_value"] = objective_value
+    if spec.bird_coefficients is not None:
+        result_provenance["bird_coefficients"] = spec.bird_coefficients.to_constants()
     if provenance:
         result_provenance.update(provenance)
 

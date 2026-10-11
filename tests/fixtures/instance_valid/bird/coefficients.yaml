@@ -1,4 +1,4 @@
 source: {ebd_release: "fixture", fit_script: "fixture", fitted_on: "2026-10-11"}
 species:
-  rebnut: {intercept: 0.0, swvol: 0.0, hwvol: 0.0, age: 0.0}
-  borchi2: {intercept: 0.0, swvol: 0.0, hwvol: 0.0, age: 0.0}
+  rebnut: {intercept: 0.7594, swvol: 0.002181, hwvol: -0.011763, age: -0.0008235}
+  borchi2: {intercept: 0.5, swvol: 0.001, hwvol: -0.005, age: -0.0005}
