@@ -1,6 +1,6 @@
 # wbi-birds Roadmap
 
-Program context: [`UBC-FRESH/wbi-birds-2021`](https://github.com/UBC-FRESH/wbi-birds-2021) → `ROADMAP.md` (v2).
+Program context: [`UBC-FRESH/wbi-birds-manuscript`](https://github.com/UBC-FRESH/wbi-birds-manuscript) → `ROADMAP.md` (v2).
 This repo implements paper **Phase 3** (engine reimplementation).
 
 ## One-liner
@@ -23,7 +23,7 @@ Status: **complete** (2026-10-11)
 
 - [x] Repo scaffold + initial commit (`a5c6520`)
 - [x] CI workflows validated (`ci` 38103589362, `docs` 38103589358; release dry-run at E-P6)
-- [x] Issue tree created + linked from paper #3 (`UBC-FRESH/wbi-birds-2021#3`)
+- [x] Issue tree created + linked from paper #3 (`UBC-FRESH/wbi-birds-manuscript#3`)
 - [x] Reuse boundary contract documented (ws3 / femic / bird lineage)
 
 ## E-P2 — Data contract & instance compilation

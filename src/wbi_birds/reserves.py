@@ -1,6 +1,6 @@
 """B3 reserve-network support (E-P3.5).
 
-Sequential-conservation arm of the B3 experiment (`UBC-FRESH/wbi-birds-2021#14`):
+Sequential-conservation arm of the B3 experiment (`UBC-FRESH/wbi-birds-manuscript#14`):
 a habitat-only reserve network — selected without any harvesting economics — is
 made harvest-inoperable and compared against the integrated ε-constraint
 results at matched bird-abundance targets.

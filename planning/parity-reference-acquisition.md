@@ -23,7 +23,7 @@ The comparison consumes a long-format CSV:
 The legacy pipeline (`UBC-FRESH/wbi_harvesting-birds`, `01_run-spades.R` + `modules/`)
 ran under R / SpaDES 0.1.x and cached its simulation outputs in the original run
 environment. **Those outputs are not committed to the repos** (checked 2026-10-11:
-no CSV/RDS/RData in either `wbi_harvesting-birds` or `wbi-birds-2021`). Acquisition
+no CSV/RDS/RData in either `wbi_harvesting-birds` or `wbi-birds-manuscript`). Acquisition
 options, in order of preference:
 
 1. **Archived outputs** — retrieve the cached simulation outputs (RDS/data cache)

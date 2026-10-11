@@ -4,7 +4,7 @@ Simulation engine for the **WBI birds study** — ε-constraint tradeoff analysi
 between even-flow harvesting and multi-species bird abundance, built on
 [`ws3`](https://github.com/UBC-FRESH/ws3).
 
-> Companion manuscript: [`UBC-FRESH/wbi-birds-2021`](https://github.com/UBC-FRESH/wbi-birds-2021)
+> Companion manuscript: [`UBC-FRESH/wbi-birds-manuscript`](https://github.com/UBC-FRESH/wbi-birds-manuscript)
 > (target journal: *Environmental Modelling & Software*).
 
 ## What it does
@@ -16,8 +16,10 @@ between even-flow harvesting and multi-species bird abundance, built on
 
 ## Status
 
-`v0.1.0a1` — scaffold (Phase E-P1). The manuscript's full scope and schedule live in
-`UBC-FRESH/wbi-birds-2021` → `ROADMAP.md` (v2); engine phases in this repo's `ROADMAP.md`.
+`v0.1.0a1` — pre-release: engine phases E-P1–E-P5 shipped on `main` (pipeline,
+bird module, verification framework); E-P6 completes docs, examples, and the
+`v1.0.0` release. The manuscript's full scope and schedule live in
+`UBC-FRESH/wbi-birds-manuscript` → `ROADMAP.md` (v2); engine phases in this repo's `ROADMAP.md`.
 
 ## Install (development)
 

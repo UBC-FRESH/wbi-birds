@@ -2,7 +2,7 @@
 
 ## Project purpose
 
-Simulation engine for the WBI birds manuscript ([`UBC-FRESH/wbi-birds-2021`](https://github.com/UBC-FRESH/wbi-birds-2021)):
+Simulation engine for the WBI birds manuscript ([`UBC-FRESH/wbi-birds-manuscript`](https://github.com/UBC-FRESH/wbi-birds-manuscript)):
 ε-constraint tradeoffs between even-flow harvesting and multi-species bird abundance, built on `ws3`.
 Pattern repos: `UBC-FRESH/fresh-daugherty` (closest analogue), `UBC-FRESH/fhops`.
 
@@ -42,5 +42,5 @@ Phase E-P1 (scaffold). Layout: `src/wbi_birds/`, `tests/`, `docs/`, `examples/`,
 ## Guardrails
 
 - Scientific scope is frozen by the manuscript roadmap; engine changes that could alter results require an
-  issue cross-linked to `UBC-FRESH/wbi-birds-2021#3`.
+  issue cross-linked to `UBC-FRESH/wbi-birds-manuscript#3`.
 - Record release/version identifiers for every result-affecting run.
