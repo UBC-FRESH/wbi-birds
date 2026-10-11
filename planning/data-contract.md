@@ -55,7 +55,7 @@ provenance:
   ws3: {version: "..."}
   ebird: {release: "ebd_rel<Mon>-<Year>", note: "raw private; derived only"}
   bird_model: {commit: "...", fitted: "2026-..."}
-  engine: {version: "0.1.0a1"}
+  engine: {version: "1.0.0"}
 checksums:
   algorithm: sha256
   files: {inputs/...: "..."}

@@ -6,7 +6,7 @@ provenance:
   ws3: {version: "0.0.0-fixture"}
   ebird: {release: "fixture", note: "derived only"}
   bird_model: {commit: "fixture", fitted: "2026-10-11"}
-  engine: {version: "0.1.0a1"}
+  engine: {version: "1.0.0"}
 checksums:
   algorithm: sha256
   files: {}

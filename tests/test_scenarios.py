@@ -114,7 +114,7 @@ def test_scenario_result_round_trip() -> None:
         solver=SolverResult(backend="highs", status_raw="Optimal", runtime_seconds=2.44),
         artifacts={"results": "results/scenarios/TSA40/rebnut/s10.csv"},
         diagnostics=[],
-        engine_version="0.1.0a1",
+        engine_version="1.0.0",
     )
     assert ScenarioResult.model_validate(result.model_dump()) == result
     assert load_yaml(dump_yaml(result), ScenarioResult) == result
