@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wbi-birds"
+version = "0.1.0a1"
+description = "Epsilon-constraint harvest-bird-abundance tradeoff engine for the WBI birds study, built on ws3"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "UBC FRESH Lab" }]
+keywords = ["forestry", "optimization", "timber-supply", "biodiversity", "landbirds", "reproducibility"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  "numpy",
+  "pandas",
+  "pydantic>=2",
+  "pyyaml",
+  "rich",
+  "typer",
+  "ws3>=1.1.0a5",
+]
+
+[project.urls]
+Homepage = "https://github.com/UBC-FRESH/wbi-birds"
+Documentation = "https://ubc-fresh.github.io/wbi-birds/"
+Repository = "https://github.com/UBC-FRESH/wbi-birds"
+Issues = "https://github.com/UBC-FRESH/wbi-birds/issues"
+Changelog = "https://github.com/UBC-FRESH/wbi-birds/blob/main/CHANGE_LOG.md"
+
+[project.optional-dependencies]
+docs = ["sphinx>=7", "sphinx-rtd-theme>=2"]
+dev = [
+  "build>=1.2",
+  "pytest>=8",
+  "ruff>=0.5",
+  "sphinx>=7",
+  "sphinx-rtd-theme>=2",
+  "twine>=5",
+]
+quality = ["ruff>=0.5"]
+release = ["build>=1.2", "twine>=5"]
+test = ["pytest>=8"]
+
+[project.scripts]
+wbi-birds = "wbi_birds.cli:app"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM", "RUF"]

@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+authors:
+  - family-names: Paradis
+    given-names: Gregory
+    affiliation: "University of British Columbia, Department of Forest Resources Management"
+title: "wbi-birds: epsilon-constraint harvest-bird-abundance tradeoff engine"
+version: 0.1.0a1
+license: MIT
+repository-code: "https://github.com/UBC-FRESH/wbi-birds"
+url: "https://github.com/UBC-FRESH/wbi-birds"

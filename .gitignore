@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.eggs/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Docs build
+docs/_build/
+
+# Local work
+tmp/
+local/
+*.log
+
+# Data boundary (derived inputs snapshot at release; raw never committed)
+data/private/
+data/raw/
+outputs/
+results/scratch/
