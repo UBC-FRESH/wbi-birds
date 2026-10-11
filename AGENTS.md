@@ -11,7 +11,7 @@ Pattern repos: `UBC-FRESH/fresh-daugherty` (closest analogue), `UBC-FRESH/fhops`
 - Depend on `UBC-FRESH/ws3` (ForestModel, LP machinery, Model I even-flow + ε constraints). **Do not re-implement ws3.**
 - Consume `UBC-FRESH/femic` outputs via a documented file contract; do not import-couple.
 - Bird anticipation curves are served by the species-generic module in this repo (lineage: `fitBirdBiomassModel`).
-- **Raw eBird data are never redistributed**; derived products only (see manuscript repo `planning/ebird-data-request*.md`).
+- **Raw eBird data are never redistributed**; derived products only (see manuscript repo `planning/ebird-data-request*.md`). Private raw store: submodule `external/wbi-ebird-data` (DataLad); CI does not init submodules; never publish its content.
 
 ## Current repo state
 
@@ -30,6 +30,11 @@ Phase E-P1 (scaffold). Layout: `src/wbi_birds/`, `tests/`, `docs/`, `examples/`,
 - `ruff format --check src tests` · `ruff check src tests` · `pytest`
 - Docs build: `sphinx-build -b html docs docs/_build/html -W`
 - CI green on the PR.
+
+## Engine defaults
+
+- Solver: **HiGHS** (open) by default; Gurobi optional switch; record solver + version in result metadata.
+- Instances: **one per management unit (TSA)**.
 
 ## Guardrails
 

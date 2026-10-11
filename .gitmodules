@@ -1,0 +1,3 @@
+[submodule "external/wbi-ebird-data"]
+	path = external/wbi-ebird-data
+	url = https://github.com/UBC-FRESH/wbi-ebird-data.git

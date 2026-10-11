@@ -29,7 +29,7 @@ Status: **draft for review** (E-P2.1 / #7). The femic → inputs mapping is fixe
 
 ```yaml
 schema_version: 1
-instance_id: wbi-5tsa
+instance_id: wbi-tsa08
 created: 2026-10-11
 provenance:
   femic: {commit: "...", outputs_sha256: "..."}
@@ -45,7 +45,7 @@ checksums:
 ## `config/run.yaml` (sketch)
 
 ```yaml
-tsas: [tsa08, tsa16, tsa24, tsa40, tsa41]
+management_unit: {id: TSA08, name: "Fort St John"}
 horizon_years: 80
 even_flow: {epsilon: 0.10}
 utilization: 0.85
@@ -86,8 +86,12 @@ species:
 - eBird: raw data stays outside all instances; only coefficients/derived products inside
 - ws3: public API only
 
-## Open questions (for review)
+## Resolved decisions (2026-10-11)
 
-1. **Solver default** — HiGHS (open) vs Gurobi (legacy parity runs) — affects CI and parity story.
-2. **Instance granularity** — one multi-TSA instance (legacy was one monolithic model over 5 TSAs) vs per-TSA instances; proposal: single instance, TSA as a dimension.
-3. **Coefficient registry** — instance-local copies (proposed) vs engine-shipped defaults.
+1. **Solver** — default **HiGHS** (open; keeps the reproducibility bundle fully open). Gurobi is a documented switch if HiGHS performance becomes a bottleneck; every result set records solver backend + version in run metadata. Parity implications tracked in E-P5.
+2. **Granularity** — **one instance per management unit (TSA)**. The TSR/AAC determination process operates per management unit; aggregating units has no management decision-space analogue. Campaign = five instances.
+3. **Coefficient registry** — instance-local copies (as drafted), sourced from the private data store's fit outputs.
+
+## Private raw-data store
+
+- `external/wbi-ebird-data` — private DataLad + git-annex dataset (`UBC-FRESH/wbi-ebird-data`) holding raw EBD/SED and private derived tables. Never public; CI does not initialize submodules; the engine reads derived products only.

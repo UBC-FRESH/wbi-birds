@@ -17,3 +17,8 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - E-P2 children opened: #7 (instance contract), #8 (femic consumption path), #9 (schemas); phase branch `feature/issue-2-ep2-data-contract`.
 - E-P2.1: `planning/data-contract.md` v0.1 draft (layout, manifest, run/species/coefficient configs, validation rules, boundaries, open questions).
+
+## 2026-10-11 — E-P2: private data store wired; decisions resolved
+
+- Private DataLad dataset `UBC-FRESH/wbi-ebird-data` created; wired as `external/wbi-ebird-data` submodule of this repo.
+- E-P2.1 decisions resolved: HiGHS default solver (Gurobi switch documented), per-management-unit (TSA) instances, instance-local coefficients.

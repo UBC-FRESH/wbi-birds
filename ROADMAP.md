@@ -36,6 +36,8 @@ Goal: documented instance layout + provenance; femic-consumption contract; scena
 
 Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branch: `feature/issue-2-ep2-data-contract`.
 
+- [x] Private raw-data store submodule (`external/wbi-ebird-data`, DataLad, private)
+
 ## E-P3 — Core engine
 
 Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
@@ -43,6 +45,7 @@ Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 - [ ] ws3 model builder from the instance contract
 - [ ] ε-constraint scenario grid runner (11 scenarios × TSA × species/guild)
 - [ ] Output contract (results tables) + smoke tests
+- [ ] Solver config: HiGHS default; Gurobi switch documented; backend recorded in run metadata
 
 ## E-P4 — Bird module
 
