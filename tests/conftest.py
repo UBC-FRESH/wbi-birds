@@ -14,11 +14,17 @@ FIXTURE_MODEL = "tsa24_clipped"
 
 
 @pytest.fixture
-def fixture_model(tmp_path: Path):
-    """A built ws3 model on the tsa24_clipped fixture instance."""
+def fixture_instance(tmp_path: Path) -> Path:
+    """A fixture instance directory with the tsa24_clipped bundle staged."""
     instance = tmp_path / "instance"
     shutil.copytree(INSTANCE_FIXTURE, instance)
     bundle = load_ws3_sections(FIXTURE_DIR, FIXTURE_MODEL)
     stage_ws3_sections(bundle, instance)
-    model, _stats = build_model(instance)
+    return instance
+
+
+@pytest.fixture
+def fixture_model(fixture_instance: Path):
+    """A built ws3 model on the tsa24_clipped fixture instance."""
+    model, _stats = build_model(fixture_instance)
     return model

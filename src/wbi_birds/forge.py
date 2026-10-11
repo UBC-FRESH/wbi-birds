@@ -11,6 +11,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+import yaml
 from freshforge.providers import NodeTypeMetadata, ProviderMetadata
 from freshforge.records import (
     Diagnostic,
@@ -21,6 +22,7 @@ from freshforge.records import (
 )
 from ws3 import opt as ws3opt
 
+from wbi_birds.mapping import load_ws3_sections, locate_ws3_bundle, stage_ws3_sections
 from wbi_birds.model import build_model
 from wbi_birds.results import write_scenario_result
 from wbi_birds.runner import ProblemSpec, run_scenario
@@ -58,9 +60,9 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
             "Compile a per-management-unit instance from femic outputs + "
             "coefficients (data-contract layout)."
         ),
-        inputs=("coefficients",),
+        inputs=(),
         outputs=("instance_root",),
-        parameters=("femic_bundle", "management_unit"),
+        parameters=("instance", "femic_bundle", "management_unit", "model_name"),
         artifacts=("instance",),
     ),
     NodeTypeMetadata(
@@ -175,6 +177,8 @@ class WbiProvider:
                 return self._run_build_model(node, params, context)
             if node_type.id == "run_scenarios":
                 return self._run_scenarios(node, params, context)
+            if node_type.id == "compile_instance":
+                return self._run_compile_instance(node, params, context)
         except Exception as exc:
             return ProviderRunResult(
                 status=RunStatus.FAILED,
@@ -240,14 +244,9 @@ class WbiProvider:
         )
         result = write_scenario_result(result, instance / "results")
 
-        def _relative(path: Path) -> str:
-            try:
-                return str(path.relative_to(context.workdir))
-            except ValueError:
-                return str(path)
-
         artifacts = {
-            key: _relative(instance / "results" / value) for key, value in result.artifacts.items()
+            key: self._relative_to_workdir(instance / "results" / value, context)
+            for key, value in result.artifacts.items()
         }
         diagnostics: tuple[Diagnostic, ...] = ()
         if result.status != "optimal":
@@ -273,6 +272,48 @@ class WbiProvider:
             diagnostics=diagnostics,
             data={"provenance": result.provenance},
         )
+
+    @staticmethod
+    def _relative_to_workdir(path: Path, context: Any) -> str:
+        try:
+            return str(path.relative_to(context.workdir))
+        except ValueError:
+            return str(path)
+
+    def _run_compile_instance(
+        self, node: WorkflowNode, params: dict[str, Any], context: Any
+    ) -> ProviderRunResult:
+        instance = self._resolve_instance(params, context)
+        if "femic_bundle" not in params:
+            raise ValueError(
+                "Node parameters must provide 'femic_bundle' (a directory of ws3 section files)"
+            )
+        bundle_dir = Path(context.resolve_path(str(params["femic_bundle"])))
+        model_name = str(params.get("model_name") or locate_ws3_bundle(bundle_dir))
+        bundle = load_ws3_sections(bundle_dir, model_name)
+        staged = stage_ws3_sections(bundle, instance)
+        management_unit = params.get("management_unit")
+        if management_unit:
+            self._update_management_unit(instance, str(management_unit))
+        return ProviderRunResult(
+            status=RunStatus.SUCCESS,
+            outputs={"instance_root": str(instance)},
+            artifacts={"instance": self._relative_to_workdir(instance, context)},
+            data={
+                "model_name": model_name,
+                "staged_sections": staged,
+                "management_unit": str(management_unit) if management_unit else None,
+            },
+        )
+
+    @staticmethod
+    def _update_management_unit(instance: Path, management_unit: str) -> None:
+        run_path = instance / "config" / "run.yaml"
+        run = yaml.safe_load(run_path.read_text(encoding="utf-8"))
+        if not isinstance(run, dict):
+            raise ValueError(f"Run config is not a mapping: {run_path}")
+        run["management_unit"] = {"id": management_unit, "name": management_unit}
+        run_path.write_text(yaml.safe_dump(run, sort_keys=False), encoding="utf-8")
 
 
 def provider_factory() -> WbiProvider:
