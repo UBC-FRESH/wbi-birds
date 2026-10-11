@@ -28,13 +28,20 @@ Status: **complete** (2026-10-11)
 
 ## E-P2 — Data contract & instance compilation
 
+Status: **complete** (2026-10-11).
+
 Goal: documented instance layout + provenance; femic-consumption contract; scenario/result schemas.
 
-- [ ] Instance directory contract + validation
-- [ ] femic output consumption path (documented; tested with fixtures)
-- [ ] Scenario/result schemas (pydantic) + round-trip tests
+- [x] Instance directory contract + validation (`wbi-birds instance validate`; fixture tests green)
+- [x] femic output consumption path — `planning/femic-map.md` v1 + `wbi_birds.mapping` (fixture-tested with a real `tsa24_clipped` slice)
+- [x] Scenario/result schemas (pydantic) + round-trip tests (`wbi_birds.scenarios`; suite green)
 
 Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branch: `feature/issue-2-ep2-data-contract`.
+
+- [x] FreshForge workflow layer adopted (plan-only provider + pipeline/matrix specs) — `planning/workflow-blueprint.md`
+- [ ] AOI model-build pipeline dependency (femic+FreshForge, TSA08/16/24/40/41) — `UBC-FRESH/femic#316`
+
+- [x] Private raw-data store submodule (`external/wbi-ebird-data`, DataLad, private)
 
 ## E-P3 — Core engine
 
@@ -43,6 +50,10 @@ Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 - [ ] ws3 model builder from the instance contract
 - [ ] ε-constraint scenario grid runner (11 scenarios × TSA × species/guild)
 - [ ] Output contract (results tables) + smoke tests
+- [ ] B3 support: habitat-only reserve network scenario batch vs integrated ε results (`UBC-FRESH/wbi-birds-2021#14`)
+- [ ] Solver config: HiGHS default; Gurobi switch documented; backend recorded in run metadata
+- [ ] FreshForge `run_node` hooks for `run_scenarios` (+ evidence-manifest smoke)
+- [ ] femic composition: swap interim `compile_instance`/`build_model` adapters for femic model-build stages
 
 ## E-P4 — Bird module
 
@@ -51,6 +62,7 @@ Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 - [ ] Coefficient/curve module (softwood / hardwood / age)
 - [ ] EBD-derived ingestion path (auk-style filtering; derived tables only)
 - [ ] Species/guild registry (suite per manuscript P2.3)
+- [ ] FreshForge `run_node` hooks for `ingest_ebd` / `fit_antifunction`
 
 ## E-P5 — Verification & parity
 
@@ -59,6 +71,7 @@ Goal: reproduce legacy RBNU / 5-TSA results within tolerance; diagnostics.
 - [ ] Legacy parity fixtures + tolerance report
 - [ ] `results/REPRODUCIBILITY.md`
 - [ ] Anomaly adjudication with the manuscript claims map
+- [ ] FreshForge `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers`
 
 ## E-P6 — Docs, examples, release
 
@@ -67,3 +80,4 @@ Goal: `v1.0.0` release with DOI.
 - [ ] Docs site complete (quickstart, contracts, CLI); GitHub Pages publishing
 - [ ] Example instance + notebook
 - [ ] Tag `v1.0.0` + Zenodo DOI + `CITATION.cff`
+- [ ] Self-bootstrapping README acceptance: fresh environment + README (public lane) reproduces headline results

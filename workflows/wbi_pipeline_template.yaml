@@ -1,0 +1,106 @@
+workflow:
+  id: wbi_pipeline_${matrix.case_id}
+  name: WBI birds pipeline (${matrix.mu_name})
+  description: >
+    Matrix-expanded per-management-unit pipeline (see wbi_mu_matrix.yaml). Provider `wbi`;
+    plan-only until engine execution hooks land.
+nodes:
+  - id: ingest_ebd
+    provider: wbi.ingest_ebd
+    outputs:
+      derived_tables: ebd_derived_tables_${matrix.case_id}
+    parameters:
+      species_suite:
+        - rebnut
+        - borchi2
+        - gockin
+        - brncre
+        - yerwar
+        - swathr
+        - whtspa
+        - tenwar
+        - yebsap
+      months: [5, 8]
+    provenance:
+      source_store: external/wbi-ebird-data
+      matrix_case: ${matrix.case_id}
+      matrix_namespace: ${matrix.namespace}
+    artifacts:
+      report: results/workflow/${matrix.case_id}/ingest_ebd_report.json
+
+  - id: fit_antifunction
+    provider: wbi.fit_antifunction
+    needs: [ingest_ebd]
+    inputs:
+      derived_tables: ingest_ebd.derived_tables
+    outputs:
+      coefficients: antifunction_coefficients
+    parameters:
+      family: poisson
+    artifacts:
+      coefficients: bird/coefficients.yaml
+
+  - id: compile_instance
+    provider: wbi.compile_instance
+    needs: [fit_antifunction]
+    inputs:
+      coefficients: fit_antifunction.coefficients
+    outputs:
+      instance_root: instance_root
+    parameters:
+      femic_bundle: external/femic_bundle
+      management_unit: ${matrix.mu_id}
+    artifacts:
+      instance: instances/wbi-${matrix.case_id}
+
+  - id: build_model
+    provider: wbi.build_model
+    needs: [compile_instance]
+    inputs:
+      instance_root: compile_instance.instance_root
+    outputs:
+      forest_model: ws3_forest_model
+    parameters:
+      solver: highs
+
+  - id: run_scenarios
+    provider: wbi.run_scenarios
+    needs: [build_model]
+    inputs:
+      forest_model: build_model.forest_model
+    outputs:
+      scenario_results: scenario_results_${matrix.case_id}
+    parameters:
+      epsilon_steps: 11
+      mode: frontier
+    artifacts:
+      results: results/scenarios/${matrix.case_id}/
+
+  - id: compute_frontiers
+    provider: wbi.compute_frontiers
+    needs: [run_scenarios]
+    inputs:
+      scenario_results: run_scenarios.scenario_results
+    outputs:
+      frontiers: frontiers_${matrix.case_id}
+
+  - id: verify_parity
+    provider: wbi.verify_parity
+    needs: [run_scenarios]
+    inputs:
+      scenario_results: run_scenarios.scenario_results
+    outputs:
+      parity_report: parity_report_${matrix.case_id}
+    artifacts:
+      report: results/workflow/${matrix.case_id}/parity_report.json
+
+  - id: analyze_frontiers
+    provider: wbi.analyze_frontiers
+    needs: [compute_frontiers]
+    inputs:
+      frontiers: compute_frontiers.frontiers
+    outputs:
+      analysis: analysis_${matrix.case_id}
+    artifacts:
+      figures: results/figures/${matrix.case_id}/
+      claims_map: results/claims_map_${matrix.case_id}.md

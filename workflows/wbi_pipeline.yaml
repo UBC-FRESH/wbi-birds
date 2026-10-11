@@ -1,0 +1,104 @@
+workflow:
+  id: wbi_pipeline
+  name: WBI birds pipeline (eBird -> regression -> model -> ws3 -> scenarios -> frontiers -> analysis)
+  description: >
+    End-to-end, self-documenting pipeline for the WBI birds manuscript. Provider `wbi` is owned by
+    UBC-FRESH/wbi-birds; nodes are plan-only until execution hooks land (engine ROADMAP E-P3-E-P5).
+nodes:
+  - id: ingest_ebd
+    provider: wbi.ingest_ebd
+    outputs:
+      derived_tables: ebd_derived_tables
+    parameters:
+      species_suite:
+        - rebnut
+        - borchi2
+        - gockin
+        - brncre
+        - yerwar
+        - swathr
+        - whtspa
+        - tenwar
+        - yebsap
+      months: [5, 8]
+    provenance:
+      source_store: external/wbi-ebird-data
+    artifacts:
+      report: results/workflow/ingest_ebd_report.json
+
+  - id: fit_antifunction
+    provider: wbi.fit_antifunction
+    needs: [ingest_ebd]
+    inputs:
+      derived_tables: ingest_ebd.derived_tables
+    outputs:
+      coefficients: antifunction_coefficients
+    parameters:
+      family: poisson
+    artifacts:
+      coefficients: bird/coefficients.yaml
+
+  - id: compile_instance
+    provider: wbi.compile_instance
+    needs: [fit_antifunction]
+    inputs:
+      coefficients: fit_antifunction.coefficients
+    outputs:
+      instance_root: instance_root
+    parameters:
+      femic_bundle: external/femic_bundle
+      management_unit: TSA40
+    artifacts:
+      instance: instances/wbi-tsa40
+
+  - id: build_model
+    provider: wbi.build_model
+    needs: [compile_instance]
+    inputs:
+      instance_root: compile_instance.instance_root
+    outputs:
+      forest_model: ws3_forest_model
+    parameters:
+      solver: highs
+
+  - id: run_scenarios
+    provider: wbi.run_scenarios
+    needs: [build_model]
+    inputs:
+      forest_model: build_model.forest_model
+    outputs:
+      scenario_results: scenario_results
+    parameters:
+      epsilon_steps: 11
+      mode: frontier
+    artifacts:
+      results: results/scenarios/
+
+  - id: compute_frontiers
+    provider: wbi.compute_frontiers
+    needs: [run_scenarios]
+    inputs:
+      scenario_results: run_scenarios.scenario_results
+    outputs:
+      frontiers: frontiers
+
+  - id: verify_parity
+    provider: wbi.verify_parity
+    needs: [run_scenarios]
+    inputs:
+      scenario_results: run_scenarios.scenario_results
+    outputs:
+      parity_report: parity_report
+    artifacts:
+      report: results/workflow/parity_report.json
+
+  - id: analyze_frontiers
+    provider: wbi.analyze_frontiers
+    needs: [compute_frontiers]
+    inputs:
+      frontiers: compute_frontiers.frontiers
+    outputs:
+      analysis: analysis_bundle
+    artifacts:
+      figures: results/figures/
+      claims_map: results/claims_map.md

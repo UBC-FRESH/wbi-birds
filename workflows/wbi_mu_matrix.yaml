@@ -1,0 +1,30 @@
+matrix:
+  id: wbi_mu_campaign
+  name: WBI per-management-unit campaign
+  description: >
+    Expands the WBI pipeline across the five management units (TSAs) of the study.
+    MU display names are filled from the TSR registry once verified (TODO E-P2).
+  workflow_template: wbi_pipeline_template.yaml
+axes:
+  - id: mu
+    values:
+      - id: tsa08
+        variables:
+          mu_id: TSA08
+          mu_name: TSA08
+      - id: tsa16
+        variables:
+          mu_id: TSA16
+          mu_name: TSA16
+      - id: tsa24
+        variables:
+          mu_id: TSA24
+          mu_name: TSA24
+      - id: tsa40
+        variables:
+          mu_id: TSA40
+          mu_name: TSA40
+      - id: tsa41
+        variables:
+          mu_id: TSA41
+          mu_name: TSA41
