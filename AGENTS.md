@@ -36,6 +36,7 @@ Phase E-P1 (scaffold). Layout: `src/wbi_birds/`, `tests/`, `docs/`, `examples/`,
 
 - Solver: **HiGHS** (open) by default; Gurobi optional switch; record solver + version in result metadata.
 - Instances: **one per management unit (TSA)**.
+- Harvest actions: declared in the instance run config (`model.harvest_acodes`, default `[harvest]`); the engine sets the ws3 harvest flags explicitly (upstream parser gap: `UBC-FRESH/ws3#156`).
 - Workflow: FreshForge (pinned in the `workflow` extra); execution hooks land per ROADMAP E-P3–E-P5; see `planning/workflow-blueprint.md`.
 
 ## Guardrails

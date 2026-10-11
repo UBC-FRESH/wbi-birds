@@ -8,9 +8,24 @@ as provider ID ``wbi``.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
+from typing import Any
 
+import yaml
 from freshforge.providers import NodeTypeMetadata, ProviderMetadata
-from freshforge.records import Diagnostic, DiagnosticSeverity, WorkflowNode
+from freshforge.records import (
+    Diagnostic,
+    DiagnosticSeverity,
+    ProviderRunResult,
+    RunStatus,
+    WorkflowNode,
+)
+from ws3 import opt as ws3opt
+
+from wbi_birds.mapping import load_ws3_sections, locate_ws3_bundle, stage_ws3_sections
+from wbi_birds.model import build_model
+from wbi_birds.results import write_scenario_result
+from wbi_birds.runner import ProblemSpec, run_scenario
 
 PROVIDER_ID = "wbi"
 PROVIDER_VERSION = "0.1.0a1"
@@ -45,18 +60,17 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
             "Compile a per-management-unit instance from femic outputs + "
             "coefficients (data-contract layout)."
         ),
-        inputs=("coefficients",),
+        inputs=(),
         outputs=("instance_root",),
-        parameters=("femic_bundle", "management_unit"),
+        parameters=("instance", "femic_bundle", "management_unit", "model_name"),
         artifacts=("instance",),
     ),
     NodeTypeMetadata(
         id="build_model",
         name="Build ws3 model",
         description="Build the ws3 forest-estate model (Model I, even-flow) for the instance.",
-        inputs=("instance_root",),
         outputs=("forest_model",),
-        parameters=("solver",),
+        parameters=("instance",),
     ),
     NodeTypeMetadata(
         id="run_scenarios",
@@ -64,7 +78,17 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
         description=("Run the ε-constraint scenario grid and write scenario result tables."),
         inputs=("forest_model",),
         outputs=("scenario_results",),
-        parameters=("epsilon_steps", "mode"),
+        parameters=(
+            "instance",
+            "management_unit",
+            "scenario_id",
+            "objective_expr",
+            "constraint_expr",
+            "constraint_row",
+            "even_flow_epsilon",
+            "constraint_floor",
+            "solver",
+        ),
         artifacts=("results",),
     ),
     NodeTypeMetadata(
@@ -138,6 +162,158 @@ class WbiProvider:
                         )
                     )
         return diagnostics
+
+    def run_node(
+        self,
+        node: WorkflowNode,
+        node_type: NodeTypeMetadata,
+        *,
+        context: Any,
+    ) -> ProviderRunResult:
+        """Execute a WBI node (``build_model`` / ``run_scenarios``)."""
+        params = dict(node.parameters or {})
+        try:
+            if node_type.id == "build_model":
+                return self._run_build_model(node, params, context)
+            if node_type.id == "run_scenarios":
+                return self._run_scenarios(node, params, context)
+            if node_type.id == "compile_instance":
+                return self._run_compile_instance(node, params, context)
+        except Exception as exc:
+            return ProviderRunResult(
+                status=RunStatus.FAILED,
+                diagnostics=(
+                    Diagnostic(
+                        severity=DiagnosticSeverity.ERROR,
+                        code="node.execution.error",
+                        message=f"{type(exc).__name__}: {exc}",
+                        location=node.id,
+                    ),
+                ),
+            )
+        return ProviderRunResult(
+            status=RunStatus.FAILED,
+            diagnostics=(
+                Diagnostic(
+                    severity=DiagnosticSeverity.ERROR,
+                    code="node.execution.unsupported",
+                    message=f"No execution hook for node type '{node_type.id}'.",
+                    location=node.id,
+                ),
+            ),
+        )
+
+    @staticmethod
+    def _resolve_instance(params: dict[str, Any], context: Any) -> Path:
+        if "instance" not in params:
+            raise ValueError("Node parameters must provide 'instance' (path to the instance root)")
+        return Path(context.resolve_path(str(params["instance"])))
+
+    def _run_build_model(
+        self, node: WorkflowNode, params: dict[str, Any], context: Any
+    ) -> ProviderRunResult:
+        instance = self._resolve_instance(params, context)
+        _model, stats = build_model(instance)
+        return ProviderRunResult(
+            status=RunStatus.SUCCESS,
+            outputs={"forest_model": stats.to_dict()},
+            data={"instance": str(instance)},
+        )
+
+    def _run_scenarios(
+        self, node: WorkflowNode, params: dict[str, Any], context: Any
+    ) -> ProviderRunResult:
+        instance = self._resolve_instance(params, context)
+        for required in ("scenario_id", "objective_expr", "constraint_expr"):
+            if required not in params:
+                raise ValueError(f"Node parameters must provide '{required}'")
+        spec = ProblemSpec(
+            objective_expr=str(params["objective_expr"]),
+            constraint_row=str(params.get("constraint_row", "constraint")),
+            constraint_expr=str(params["constraint_expr"]),
+            even_flow_epsilon=params.get("even_flow_epsilon", 0.10),
+        )
+        model, _stats = build_model(instance)
+        result = run_scenario(
+            model,
+            spec,
+            scenario_id=str(params["scenario_id"]),
+            management_unit=str(params.get("management_unit") or "MU"),
+            constraint_floor=params.get("constraint_floor"),
+            solver=str(params.get("solver", ws3opt.SOLVER_HIGHS)),
+        )
+        result = write_scenario_result(result, instance / "results")
+
+        artifacts = {
+            key: self._relative_to_workdir(instance / "results" / value, context)
+            for key, value in result.artifacts.items()
+        }
+        diagnostics: tuple[Diagnostic, ...] = ()
+        if result.status != "optimal":
+            diagnostics = (
+                Diagnostic(
+                    severity=DiagnosticSeverity.WARNING,
+                    code="scenario.status",
+                    message=f"Scenario finished with status '{result.status}'.",
+                    location=node.id,
+                ),
+            )
+        return ProviderRunResult(
+            status=RunStatus.SUCCESS,
+            outputs={
+                "scenario_results": {
+                    "scenario_id": result.scenario_id,
+                    "status": result.status,
+                    "harvest_volume_total_m3": result.harvest_volume_total_m3,
+                    "bird_abundance_total": result.bird_abundance_total,
+                }
+            },
+            artifacts=artifacts,
+            diagnostics=diagnostics,
+            data={"provenance": result.provenance},
+        )
+
+    @staticmethod
+    def _relative_to_workdir(path: Path, context: Any) -> str:
+        try:
+            return str(path.relative_to(context.workdir))
+        except ValueError:
+            return str(path)
+
+    def _run_compile_instance(
+        self, node: WorkflowNode, params: dict[str, Any], context: Any
+    ) -> ProviderRunResult:
+        instance = self._resolve_instance(params, context)
+        if "femic_bundle" not in params:
+            raise ValueError(
+                "Node parameters must provide 'femic_bundle' (a directory of ws3 section files)"
+            )
+        bundle_dir = Path(context.resolve_path(str(params["femic_bundle"])))
+        model_name = str(params.get("model_name") or locate_ws3_bundle(bundle_dir))
+        bundle = load_ws3_sections(bundle_dir, model_name)
+        staged = stage_ws3_sections(bundle, instance)
+        management_unit = params.get("management_unit")
+        if management_unit:
+            self._update_management_unit(instance, str(management_unit))
+        return ProviderRunResult(
+            status=RunStatus.SUCCESS,
+            outputs={"instance_root": str(instance)},
+            artifacts={"instance": self._relative_to_workdir(instance, context)},
+            data={
+                "model_name": model_name,
+                "staged_sections": staged,
+                "management_unit": str(management_unit) if management_unit else None,
+            },
+        )
+
+    @staticmethod
+    def _update_management_unit(instance: Path, management_unit: str) -> None:
+        run_path = instance / "config" / "run.yaml"
+        run = yaml.safe_load(run_path.read_text(encoding="utf-8"))
+        if not isinstance(run, dict):
+            raise ValueError(f"Run config is not a mapping: {run_path}")
+        run["management_unit"] = {"id": management_unit, "name": management_unit}
+        run_path.write_text(yaml.safe_dump(run, sort_keys=False), encoding="utf-8")
 
 
 def provider_factory() -> WbiProvider:

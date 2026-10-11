@@ -65,7 +65,7 @@ MU display names: filled from the TSR registry once verified (E-P2 TODO).
 | Phase | Work |
 |---|---|
 | E-P2 | Provider declaration + pipeline/matrix specs (this blueprint) — **done, plan-only**; AOI model-build dependency registered (`UBC-FRESH/femic#316`) |
-| E-P3 | `run_node` hooks for `run_scenarios` (+ evidence in CI smoke); swap interim `compile_instance`/`build_model` adapters for femic model-build stages |
+| E-P3 | ✅ complete: hooks for `compile_instance` (femic-bundle adapter) / `build_model` / `run_scenarios` + evidence smokes + B3 comparison (2026-10-11) |
 | E-P4 | `run_node` hooks for `ingest_ebd` / `fit_antifunction` |
 | E-P5 | `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers` |
 
@@ -80,7 +80,7 @@ Bootstrap = pinned installs (engine + femic + ws3 + freshforge) → data lane �
 management unit (evidence manifests as run records). Acceptance test at E-P6: README-only
 reproduction of the headline results through the public lane.
 
-## Alpha caveats (pin: `freshforge>=0.1.0a5,<0.2`)
+## Alpha caveats (pin: `freshforge @ 5bce95b` until the next PyPI alpha — evidence manifests are unreleased past 0.1.0a5)
 
 No caching/checkpointing/parallel/remote execution yet; nodes must be idempotent. FreshForge core
 stays domain-neutral — all WBI logic lives in this repo (provider `wbi`). If the alpha surface

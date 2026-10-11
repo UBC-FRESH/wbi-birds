@@ -47,15 +47,17 @@ Child issues: #7 (instance contract), #8 (femic path), #9 (schemas). Phase branc
 
 Phase branch: `feature/issue-3-ep3-core-engine`. Child issues: #11 (model builder), #12 (scenario grid), #13 (outputs), #14 (FreshForge hooks), #15 (femic composition + B3).
 
+Status: **complete** (2026-10-11).
+
 Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 
-- [ ] ws3 model builder from the instance contract
-- [ ] ε-constraint scenario grid runner (11 scenarios × TSA × species/guild)
-- [ ] Output contract (results tables) + smoke tests
-- [ ] B3 support: habitat-only reserve network scenario batch vs integrated ε results (`UBC-FRESH/wbi-birds-2021#14`)
+- [x] ws3 model builder from the instance contract (`wbi_birds.model`; fixture model builds; stats recorded)
+- [x] ε-constraint scenario grid runner — `wbi_birds.runner` (per-period floors, even-flow bands, HiGHS; fixture smoke tests green)
+- [x] Output contract — `wbi_birds.results` CSV tables + YAML records under `<instance>/results/` (deterministic; fixture-tested)
+- [x] B3 support — `wbi_birds.reserves` + `wbi_birds.b3`: habitat-only network vs integrated ε results (matched-outcome interpolation + JSON record)
 - [ ] Solver config: HiGHS default; Gurobi switch documented; backend recorded in run metadata
-- [ ] FreshForge `run_node` hooks for `run_scenarios` (+ evidence-manifest smoke)
-- [ ] femic composition: swap interim `compile_instance`/`build_model` adapters for femic model-build stages
+- [x] FreshForge `run_node` hooks for `build_model`/`run_scenarios` — `freshforge run` smoke + durable evidence manifest green
+- [x] femic composition — interim `compile_instance` adapter (femic ws3-bundle → instance), chain-tested; swap to femic stages when `femic#316` lands
 
 ## E-P4 — Bird module
 

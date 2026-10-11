@@ -53,3 +53,26 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 - PR #10 (E-P2 phase) merged to `main` (CI green).
 - E-P3 activated: children #11-#15; branch `feature/issue-3-ep3-core-engine`.
+
+## 2026-10-11 — E-P3.1 ws3 model builder
+
+- `wbi_birds.model.build_model(instance_root)`: builds a ws3 ForestModel from `inputs/ws3/` + run config (five section imports; period/horizon derivation; optional `model` block overrides); `mapping.locate_ws3_bundle` discovers the bundle stem. `ModelStats` records model/dtype/action/transition/curve counts. 5 tests; suite 32 passed. E-P3.1 (#11) closed.
+
+## 2026-10-11 — E-P3.2 ε-constraint scenario runner
+
+- `wbi_birds.runner`: `ProblemSpec` + `run_scenario()` — objective (harvest even-flow via `cflw_e`), per-period constraint floors (scalar or period-keyed mapping) materialized via `cgen_data` lb rows, HiGHS default, solver backend + version + objective value recorded in `ScenarioResult` provenance. Series computed through the canonical `compile_schedule → apply_schedule → compile_product` path.
+- Fixture smoke: nadir solve optimal (harvest ≈ 332,914.7 m³ on `tsa24_clipped`), binding per-period floor respected, infeasible floors reported as `infeasible`, even-flow scenario solves. Suite: 38 tests green.
+- Upstream find (filed): `UBC-FRESH/ws3#156` — the Woodstock ACTION importer drops the harvest flag (`*ACTION <code> Y` → `is_harvest = 0`), zeroing any `is_harvest()`-filtered coefficient function (including the shipped 022 notebook pattern). Engine workaround: explicit harvest action codes from instance config (`model.harvest_acodes`), set after import.
+- E-P3.2 (#12) closed.
+
+## 2026-10-11 — E-P3.3 result outputs; E-P3.4 FreshForge execution hooks
+
+- `wbi_birds.results`: deterministic per-scenario CSV tables + YAML records under `<instance>/results/scenarios/<mu>/`; artifacts referenced from records; contract doc updated. (#13 closed)
+- FreshForge hooks: `wbi.build_model` / `wbi.run_scenarios` execute end-to-end; `freshforge run` smoke writes results + a durable evidence manifest on the fixture instance. (#14 closed)
+- Dependency: `freshforge` pinned to checkout commit `5bce95b56146613c7c01950403fb717d3af886d7` (evidence manifests unreleased past PyPI 0.1.0a5); sunset = switch to a version pin at the next freshforge alpha. Suite: 42 tests green.
+
+## 2026-10-11 — E-P3.5 B3 comparison + femic compile adapter; E-P3 phase complete
+
+- `wbi_birds.reserves`: habitat-only reserve selection (initial-inventory age criterion) + harvest exclusion. `wbi_birds.b3`: sequential-vs-integrated comparison, matched-outcome interpolation, deterministic JSON record (`results/b3/...`); explicit unmatched-note when the target is outside the frontier (proxy row until E-P4).
+- `wbi.compile_instance` execution hook: femic ws3-bundle → instance (`inputs/ws3/` + `management_unit` update); full chain (bundle → instance → model → scenario) runs via `freshforge run` with evidence (chain smoke green).
+- Suite: 47 tests green. E-P3 children #11–#15 all closed; phase PR opened to main.

@@ -25,6 +25,12 @@ Status: **draft for review** (E-P2.1 / #7). The femic → inputs mapping is fixe
     scratch/               # ignored working area
 ```
 
+## Results layout
+
+`results/scenarios/<management-unit>/<scenario-id>.csv` — per-period table
+(`period, harvest_volume_m3, bird_abundance`); `results/scenarios/<management-unit>/<scenario-id>.result.yaml`
+— the `ScenarioResult` record, referencing its artifacts.
+
 ## `manifest.yaml` (sketch)
 
 ```yaml
@@ -47,6 +53,7 @@ checksums:
 ```yaml
 management_unit: {id: TSA40, name: "Fort St John"}
 horizon_years: 80
+model: {base_year: 2020, period_length_years: 5, max_age: 1000, harvest_acodes: [harvest]}
 even_flow: {epsilon: 0.10}
 utilization: 0.85
 scenarios: {epsilon_steps: 11, mode: frontier}
