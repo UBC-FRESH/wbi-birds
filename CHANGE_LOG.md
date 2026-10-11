@@ -57,3 +57,10 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 ## 2026-10-11 — E-P3.1 ws3 model builder
 
 - `wbi_birds.model.build_model(instance_root)`: builds a ws3 ForestModel from `inputs/ws3/` + run config (five section imports; period/horizon derivation; optional `model` block overrides); `mapping.locate_ws3_bundle` discovers the bundle stem. `ModelStats` records model/dtype/action/transition/curve counts. 5 tests; suite 32 passed. E-P3.1 (#11) closed.
+
+## 2026-10-11 — E-P3.2 ε-constraint scenario runner
+
+- `wbi_birds.runner`: `ProblemSpec` + `run_scenario()` — objective (harvest even-flow via `cflw_e`), per-period constraint floors (scalar or period-keyed mapping) materialized via `cgen_data` lb rows, HiGHS default, solver backend + version + objective value recorded in `ScenarioResult` provenance. Series computed through the canonical `compile_schedule → apply_schedule → compile_product` path.
+- Fixture smoke: nadir solve optimal (harvest ≈ 332,914.7 m³ on `tsa24_clipped`), binding per-period floor respected, infeasible floors reported as `infeasible`, even-flow scenario solves. Suite: 38 tests green.
+- Upstream find (filed): `UBC-FRESH/ws3#156` — the Woodstock ACTION importer drops the harvest flag (`*ACTION <code> Y` → `is_harvest = 0`), zeroing any `is_harvest()`-filtered coefficient function (including the shipped 022 notebook pattern). Engine workaround: explicit harvest action codes from instance config (`model.harvest_acodes`), set after import.
+- E-P3.2 (#12) closed.
