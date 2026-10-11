@@ -19,12 +19,12 @@ the WBI birds manuscript, released with a DOI.
 
 ## E-P1 — Scaffold & contracts
 
-Goal: repo live, CI/docs/release workflows green, planning surfaces seeded.
+Status: **complete** (2026-10-11)
 
-- [ ] Repo scaffold + initial commit
-- [ ] CI workflows validated (`ci`, `docs`; release dry-run at E-P6)
-- [ ] Issue tree created + linked from paper #3
-- [ ] Reuse boundary contract documented (ws3 / femic / bird lineage)
+- [x] Repo scaffold + initial commit (`a5c6520`)
+- [x] CI workflows validated (`ci` 38103589362, `docs` 38103589358; release dry-run at E-P6)
+- [x] Issue tree created + linked from paper #3 (`UBC-FRESH/wbi-birds-2021#3`)
+- [x] Reuse boundary contract documented (ws3 / femic / bird lineage)
 
 ## E-P2 — Data contract & instance compilation
 
