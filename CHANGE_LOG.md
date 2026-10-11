@@ -111,3 +111,8 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 ## 2026-10-11 — E-P5.1 parity tolerance module
 
 - `wbi_birds.parity`: engine/reference long-format alignment, abs+rel tolerance policy, deterministic comparison records + JSON/Markdown reports (`results/parity/`); missing/extra rows are explicit failures with reasons. 6 tests; suite 75 green. E-P5.1 (#22) closed.
+
+## 2026-10-11 — E-P5.2 verify_parity hook
+
+- `wbi_birds.parity.compare_instance_results`: scans `<instance>/results/scenarios/**`, derives MU/scenario from the path, compares against long-format reference tables.
+- FreshForge `wbi.verify_parity` hook: writes `results/parity/<label>-parity.{json,md}`, `parity.failed` warnings per metric, `strict: true` fails the node; parity summary in node outputs (and thus the evidence manifest). 2 hook tests (within-tolerance + warning/strict-failure); suite 77 green. E-P5.2 (#23) closed.

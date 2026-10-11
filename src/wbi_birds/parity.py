@@ -241,6 +241,37 @@ def compare_engine_vs_reference(
     return compare(engine_rows, reference_rows, tolerances=tolerances)
 
 
+def compare_instance_results(
+    instance_root: Path | str,
+    reference_csv: Path | str,
+    *,
+    tolerances: Mapping[str, Tolerance] | None = None,
+) -> ParityReport:
+    """Compare every engine scenario result under an instance against a reference table.
+
+    Engine tables are discovered at ``<instance>/results/scenarios/<unit>/<scenario>.csv``;
+    the management unit is derived from the directory name (upper-cased) and the
+    scenario id from the file stem.
+    """
+    root = Path(instance_root)
+    results_dir = root / "results" / "scenarios"
+    if not results_dir.is_dir():
+        raise ValueError(f"No results/scenarios directory under {root}")
+    engine_rows: list[tuple[str, str, str, int, float]] = []
+    for csv_path in sorted(results_dir.glob("*/*.csv")):
+        engine_rows.extend(
+            long_from_engine(
+                csv_path,
+                management_unit=csv_path.parent.name.upper(),
+                scenario_id=csv_path.stem,
+            )
+        )
+    if not engine_rows:
+        raise ValueError(f"No scenario result tables found under {results_dir}")
+    reference_rows = long_from_reference(Path(reference_csv))
+    return compare(engine_rows, reference_rows, tolerances=tolerances)
+
+
 def write_report(report: ParityReport, results_root: Path | str, *, label: str) -> dict[str, str]:
     """Write deterministic JSON + Markdown parity report artifacts."""
     root = Path(results_root) / "parity"

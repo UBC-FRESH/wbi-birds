@@ -67,7 +67,7 @@ MU display names: filled from the TSR registry once verified (E-P2 TODO).
 | E-P2 | Provider declaration + pipeline/matrix specs (this blueprint) — **done, plan-only**; AOI model-build dependency registered (`UBC-FRESH/femic#316`) |
 | E-P3 | ✅ complete: hooks for `compile_instance` (femic-bundle adapter) / `build_model` / `run_scenarios` + evidence smokes + B3 comparison (2026-10-11) |
 | E-P4 | ✅ complete: hooks for `ingest_ebd` / `fit_antifunction`; full five-node chain smoke (ingest → fit → compile → model → bird scenario) with evidence |
-| E-P5 | `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers` |
+| E-P5 | ⏳ `wbi_birds.parity` + `wbi.verify_parity` hook complete (tolerance policy, reports, strict gating); real legacy parity + reproducibility doc pending (`femic#316` / eBird extract) |
 
 ## Self-bootstrapping requirement
 

@@ -81,7 +81,8 @@ Goal: reproduce legacy RBNU / 5-TSA results within tolerance; diagnostics.
 - [x] Legacy parity tolerance module — `wbi_birds.parity` (alignment, abs+rel tolerances, deterministic reports; fixture tests)
 - [ ] `results/REPRODUCIBILITY.md`
 - [ ] Anomaly adjudication with the manuscript claims map
-- [ ] FreshForge `run_node` hooks for `verify_parity` / `compute_frontiers` / `analyze_frontiers`
+- [x] FreshForge `run_node` hook for `verify_parity` — instance-wide comparison vs long-format reference tables; `strict` gating; JSON+Markdown reports under `results/parity/`
+- [ ] FreshForge hooks for `compute_frontiers` / `analyze_frontiers` (analysis layer)
 
 ## E-P6 — Docs, examples, release
 
