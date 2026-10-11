@@ -1,3 +1,3 @@
 """wbi-birds: epsilon-constraint harvest-bird-abundance tradeoff engine (ws3-based)."""
 
-__version__ = "0.1.0a1"
+__version__ = "1.0.0"

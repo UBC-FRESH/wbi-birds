@@ -5,7 +5,8 @@ authors:
     given-names: Gregory
     affiliation: "University of British Columbia, Department of Forest Resources Management"
 title: "wbi-birds: epsilon-constraint harvest-bird-abundance tradeoff engine"
-version: 0.1.0a1
+version: 1.0.0
+date-released: "2026-10-11"
 license: MIT
 repository-code: "https://github.com/UBC-FRESH/wbi-birds"
 url: "https://github.com/UBC-FRESH/wbi-birds"

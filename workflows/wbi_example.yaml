@@ -1,0 +1,64 @@
+workflow:
+  id: wbi_example
+  name: WBI packaged example (fixture chain + parity)
+nodes:
+  - id: ingest_ebd
+    provider: wbi.ingest_ebd
+    outputs:
+      derived_tables: ebd_suite
+    parameters:
+      instance: instances/tsa24
+      ebd: data/sample_ebd.txt
+      months: [5, 8]
+  - id: fit_antifunction
+    provider: wbi.fit_antifunction
+    needs: [ingest_ebd]
+    inputs:
+      derived_tables: ingest_ebd.derived_tables
+    outputs:
+      coefficients: suite_coefficients
+    parameters:
+      instance: instances/tsa24
+      mode: provided
+      coefficients: assets/coefficients.yaml
+  - id: compile_instance
+    provider: wbi.compile_instance
+    needs: [fit_antifunction]
+    outputs:
+      instance_root: tsa24_instance
+    parameters:
+      instance: instances/tsa24
+      femic_bundle: bundles/tsa24
+      management_unit: TSA24
+  - id: build_model
+    provider: wbi.build_model
+    needs: [compile_instance]
+    outputs:
+      forest_model: tsa24_model
+    parameters:
+      instance: instances/tsa24
+  - id: run_scenarios
+    provider: wbi.run_scenarios
+    needs: [build_model]
+    inputs:
+      forest_model: build_model.forest_model
+    outputs:
+      scenario_results: tsa24_s00
+    parameters:
+      instance: instances/tsa24
+      management_unit: TSA24
+      scenario_id: tsa24-s00
+      objective_expr: "totvol * 0.85"
+      constraint_expr: "bird"
+      bird_species: rebnut
+      measure_scope: landscape
+      even_flow_epsilon: null
+  - id: verify_parity
+    provider: wbi.verify_parity
+    needs: [run_scenarios]
+    outputs:
+      parity_report: parity_report
+    parameters:
+      instance: instances/tsa24
+      reference: references/suite.csv
+      label: tsa24-demo

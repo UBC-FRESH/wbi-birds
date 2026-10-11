@@ -1,11 +1,17 @@
+import tomllib
+from pathlib import Path
+
 from typer.testing import CliRunner
 
 from wbi_birds import __version__
 from wbi_birds.cli import app
 
+PYPROJECT = Path(__file__).resolve().parents[1] / "pyproject.toml"
+
 
 def test_version() -> None:
-    assert __version__ == "0.1.0a1"
+    metadata = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+    assert __version__ == metadata["project"]["version"]
 
 
 def test_cli_help() -> None:

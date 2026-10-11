@@ -11,7 +11,7 @@ import yaml
 
 pytest.importorskip("freshforge")
 
-from conftest import FIXTURE_DIR, INSTANCE_FIXTURE
+from conftest import FIXTURE_DIR, FRESH_PROCESS_ENV, INSTANCE_FIXTURE
 
 WORKFLOW = """
 workflow:
@@ -79,6 +79,7 @@ def test_freshforge_run_chain(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         cwd=str(tmp_path),
+        env=FRESH_PROCESS_ENV,
     )
     assert proc.returncode == 0, f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
     payload = json.loads(proc.stdout)

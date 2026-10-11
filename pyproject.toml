@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wbi-birds"
-version = "0.1.0a1"
+version = "1.0.0"
 description = "Epsilon-constraint harvest-bird-abundance tradeoff engine for the WBI birds study, built on ws3"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "UBC FRESH Lab" }]
 keywords = ["forestry", "optimization", "timber-supply", "biodiversity", "landbirds", "reproducibility"]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Science/Research",
   "Programming Language :: Python :: 3",
   "Topic :: Scientific/Engineering",
@@ -46,6 +46,7 @@ dev = [
   "sphinx-rtd-theme>=2",
   "twine>=5",
 ]
+examples = ["nbconvert>=7", "ipykernel>=6.29", "matplotlib>=3.9"]
 quality = ["ruff>=0.5"]
 release = ["build>=1.2", "twine>=5"]
 test = ["pytest>=8"]
