@@ -80,7 +80,7 @@ Bootstrap = pinned installs (engine + femic + ws3 + freshforge) → data lane �
 management unit (evidence manifests as run records). Acceptance test at E-P6: README-only
 reproduction of the headline results through the public lane.
 
-## Alpha caveats (pin: `freshforge>=0.1.0a5,<0.2`)
+## Alpha caveats (pin: `freshforge @ 5bce95b` until the next PyPI alpha — evidence manifests are unreleased past 0.1.0a5)
 
 No caching/checkpointing/parallel/remote execution yet; nodes must be idempotent. FreshForge core
 stays domain-neutral — all WBI logic lives in this repo (provider `wbi`). If the alpha surface
