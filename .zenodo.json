@@ -1,0 +1,30 @@
+{
+  "title": "wbi-birds: epsilon-constraint harvest-bird-abundance tradeoff engine",
+  "description": "Simulation engine for the WBI birds study: epsilon-constraint tradeoff analysis between even-flow harvesting and multi-species bird abundance in northeastern British Columbia timber supply areas, built on the ws3 forest-estate LP framework. Includes a species-generic bird anticipation module, eBird-derived ingestion, FreshForge workflow graphs, scenario runner, and a legacy-parity verification framework. Raw eBird data are not redistributed; derived products only.",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Paradis, Gregory",
+      "affiliation": "University of British Columbia, Department of Forest Resources Management"
+    }
+  ],
+  "keywords": [
+    "forest management",
+    "timber supply",
+    "biodiversity",
+    "landbirds",
+    "eBird",
+    "epsilon-constraint",
+    "optimization",
+    "reproducibility"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/UBC-FRESH/wbi-birds-manuscript",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

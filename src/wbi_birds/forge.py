@@ -33,7 +33,7 @@ from wbi_birds.results import write_scenario_result
 from wbi_birds.runner import ProblemSpec, run_scenario
 
 PROVIDER_ID = "wbi"
-PROVIDER_VERSION = "0.1.0a1"
+PROVIDER_VERSION = "1.0.0"
 
 NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
     NodeTypeMetadata(

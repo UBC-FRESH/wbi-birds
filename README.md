@@ -16,9 +16,10 @@ between even-flow harvesting and multi-species bird abundance, built on
 
 ## Status
 
-`v0.1.0a1` — pre-release: engine phases E-P1–E-P5 shipped on `main` (pipeline,
-bird module, verification framework); E-P6 completes docs, examples, and the
-`v1.0.0` release. The manuscript's full scope and schedule live in
+`v1.0.0` — engine phases E-P1–E-P6 complete (pipeline, bird module, verification
+framework, docs, examples). The real-data campaign lane (private eBird extract,
+femic model builds) and the legacy parity run are gated on external inputs; the
+manuscript's full scope and schedule live in
 `UBC-FRESH/wbi-birds-manuscript` → `ROADMAP.md` (v2); engine phases in this repo's `ROADMAP.md`.
 
 ## Install (development)
@@ -32,22 +33,29 @@ wbi-birds --help
 
 ## Bootstrap (self-reproduction)
 
-Target bootstrap for a fresh environment (final acceptance at E-P6; two-lane data model — see `planning/workflow-blueprint.md`):
+Two lanes: a **public lane** that installs and runs from packaged fixtures (no
+private data), and a **campaign lane** for the manuscript runs (private eBird
+extract + femic model builds). The public lane is the acceptance test for every
+release.
+
+Public lane (fresh environment, verified at `v1.0.0`):
 
 ```bash
-# 1. pinned environment: engine + forest-estate control plane + workflow layer
+git clone https://github.com/UBC-FRESH/wbi-birds
+cd wbi-birds
 python -m venv .venv && . .venv/bin/activate
-pip install -e .[dev]          # engine (includes the freshforge pin)
-pip install -e ../femic        # femic: model building/running incl. ws3 (sibling checkout)
+pip install -e ".[dev,workflow,examples]"
+pytest -q
+python -m nbconvert --to notebook --execute examples/quickstart.ipynb
+```
 
-# 2. data lane (choose one)
-#    public lane — released derived inputs snapshot (Zenodo DOI at release); no private access needed
-#    team lane   — private annex data
+Campaign lane (team; sibling `femic` checkout + private data):
+
+```bash
+pip install -e ../femic        # model building/running incl. ws3
 git submodule update --init external/wbi-ebird-data && datalad get -r external/wbi-ebird-data
 
-# 3. run the pipeline per management unit
-freshforge plan workflows/wbi_pipeline.yaml
-freshforge run  workflows/wbi_pipeline.yaml --workdir . --namespace tsa40 \
+freshforge run workflows/wbi_pipeline.yaml --workdir . --namespace tsa40 \
   --evidence results/workflow/tsa40-evidence.json
 ```
 
@@ -58,4 +66,5 @@ freshforge run  workflows/wbi_pipeline.yaml --workdir . --namespace tsa40 \
 
 ## License
 
-MIT. Cite via `CITATION.cff` once `v1.0.0` is released (Zenodo DOI to be added).
+MIT. Cite via `CITATION.cff` (`v1.0.0`); the Zenodo DOI is added once the
+Zenodo–GitHub integration is enabled for this repository.
