@@ -74,6 +74,8 @@ Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 
 ## E-P5 — Verification & parity
 
+Phase branch: `feature/issue-5-ep5-parity`. Child issues: #22 (tolerance module), #23 (report + hook), #24 (legacy reference + real parity run — gated on `UBC-FRESH/femic#316`).
+
 Goal: reproduce legacy RBNU / 5-TSA results within tolerance; diagnostics.
 
 - [ ] Legacy parity fixtures + tolerance report

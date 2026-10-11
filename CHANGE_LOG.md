@@ -102,3 +102,8 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - `wbi_birds.fit`: `stage_coefficients` (provided/R-lineage mode, taxonomy-validated, deterministic output) and engine-native Poisson MLE (`fit_poisson_glm`, feature-standardized L-BFGS-B, gradient-based convergence flag); merge preserves other species and marks `source.fit`.
 - FreshForge hooks: `wbi.ingest_ebd` and `wbi.fit_antifunction` execute; `wbi.run_scenarios` supports `bird_species` + `measure_scope` (bird row). Full chain smoke: ingest → fit → compile → build → bird scenario via `freshforge run` with evidence; positive landscape bird total verified.
 - Suite: 69 tests green. E-P4 children #17–#20 all closed; phase PR opened.
+
+## 2026-10-11 — E-P4 merged to main (PR #21, CI green); E-P5 activated
+
+- PR #21 merged; phase branch deleted.
+- E-P5 activated: children #22-#24; branch `feature/issue-5-ep5-parity` (real parity gated on femic#316).
