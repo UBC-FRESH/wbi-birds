@@ -1,7 +1,7 @@
 """FreshForge provider for the WBI birds engine.
 
 Plan-only (metadata + validation) for now; execution hooks (``run_node``) arrive
-with ROADMAP E-P3–E-P5. Registered via the ``freshforge.providers`` entry point
+with planning phases E-P3 to E-P5. Registered via the ``freshforge.providers`` entry point
 as provider ID ``wbi``.
 """
 
@@ -19,7 +19,9 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
     NodeTypeMetadata(
         id="ingest_ebd",
         name="Ingest eBird data",
-        description="Filter the private EBD/SED extract to the species suite and derive point-level tables.",
+        description=(
+            "Filter the private EBD/SED extract to the species suite and derive point-level tables."
+        ),
         outputs=("derived_tables",),
         parameters=("species_suite", "months"),
         artifacts=("report",),
@@ -27,7 +29,10 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
     NodeTypeMetadata(
         id="fit_antifunction",
         name="Fit anticipation functions",
-        description="Fit per-species GLMs (counts ~ softwood/hardwood biomass + age) and export coefficients.",
+        description=(
+            "Fit per-species GLMs (counts ~ softwood/hardwood biomass + age) "
+            "and export coefficients."
+        ),
         inputs=("derived_tables",),
         outputs=("coefficients",),
         parameters=("family",),
@@ -36,7 +41,10 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
     NodeTypeMetadata(
         id="compile_instance",
         name="Compile instance",
-        description="Compile a per-management-unit instance from femic outputs + coefficients (data-contract layout).",
+        description=(
+            "Compile a per-management-unit instance from femic outputs + "
+            "coefficients (data-contract layout)."
+        ),
         inputs=("coefficients",),
         outputs=("instance_root",),
         parameters=("femic_bundle", "management_unit"),
@@ -53,7 +61,7 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
     NodeTypeMetadata(
         id="run_scenarios",
         name="Run scenario grid",
-        description="Run the ε-constraint scenario grid and write scenario result tables.",
+        description=("Run the ε-constraint scenario grid and write scenario result tables."),
         inputs=("forest_model",),
         outputs=("scenario_results",),
         parameters=("epsilon_steps", "mode"),
@@ -62,14 +70,18 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
     NodeTypeMetadata(
         id="compute_frontiers",
         name="Compute frontiers",
-        description="Compute Pareto frontier + marginal opportunity-cost metrics from scenario results.",
+        description=(
+            "Compute Pareto frontier + marginal opportunity-cost metrics from scenario results."
+        ),
         inputs=("scenario_results",),
         outputs=("frontiers",),
     ),
     NodeTypeMetadata(
         id="verify_parity",
         name="Verify legacy parity",
-        description="Compare engine results against legacy RBNU/5-TSA outputs within recorded tolerances.",
+        description=(
+            "Compare engine results against legacy RBNU/5-TSA outputs within recorded tolerances."
+        ),
         inputs=("scenario_results",),
         outputs=("parity_report",),
         artifacts=("report",),
@@ -119,7 +131,8 @@ class WbiProvider:
                             severity=DiagnosticSeverity.ERROR,
                             code=f"node.{field_name}.missing",
                             message=(
-                                f"Node is missing required provider-declared {field_name} key '{key}'."
+                                f"Node is missing required provider-declared {field_name} "
+                                f"key '{key}'."
                             ),
                             location=f"{location}.{field_name}.{key}",
                         )

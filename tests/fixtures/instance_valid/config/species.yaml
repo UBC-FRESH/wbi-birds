@@ -1,0 +1,4 @@
+species:
+  - {code: rebnut, common: Red-breasted Nuthatch, guild: mature_conifer}
+  - {code: borchi2, common: Boreal Chickadee, guild: mature_conifer}
+guilds: [mature_conifer, mixedwood, early_seral, cavity]

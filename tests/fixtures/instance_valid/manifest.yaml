@@ -1,0 +1,12 @@
+schema_version: 1
+instance_id: wbi-tsa40
+created: 2026-10-11
+provenance:
+  femic: {commit: "fixture", outputs_sha256: "fixture"}
+  ws3: {version: "0.0.0-fixture"}
+  ebird: {release: "fixture", note: "derived only"}
+  bird_model: {commit: "fixture", fitted: "2026-10-11"}
+  engine: {version: "0.1.0a1"}
+checksums:
+  algorithm: sha256
+  files: {}
