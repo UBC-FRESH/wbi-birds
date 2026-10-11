@@ -50,7 +50,7 @@ Phase branch: `feature/issue-3-ep3-core-engine`. Child issues: #11 (model builde
 Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 
 - [x] ws3 model builder from the instance contract (`wbi_birds.model`; fixture model builds; stats recorded)
-- [ ] ε-constraint scenario grid runner (11 scenarios × TSA × species/guild)
+- [x] ε-constraint scenario grid runner — `wbi_birds.runner` (per-period floors, even-flow bands, HiGHS; fixture smoke tests green)
 - [ ] Output contract (results tables) + smoke tests
 - [ ] B3 support: habitat-only reserve network scenario batch vs integrated ε results (`UBC-FRESH/wbi-birds-2021#14`)
 - [ ] Solver config: HiGHS default; Gurobi switch documented; backend recorded in run metadata

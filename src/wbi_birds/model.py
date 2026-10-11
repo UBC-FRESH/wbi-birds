@@ -19,6 +19,7 @@ from wbi_birds.mapping import load_ws3_sections, locate_ws3_bundle
 DEFAULT_BASE_YEAR = 2020
 DEFAULT_PERIOD_LENGTH_YEARS = 5
 DEFAULT_MAX_AGE = 1000
+DEFAULT_HARVEST_ACODES: tuple[str, ...] = ("harvest",)
 
 
 class ModelBuildError(ValueError):
@@ -44,7 +45,7 @@ class ModelStats:
         return asdict(self)
 
 
-def _model_settings(instance_root: Path) -> dict[str, int]:
+def _model_settings(instance_root: Path) -> dict[str, Any]:
     run_path = instance_root / "config" / "run.yaml"
     try:
         run = yaml.safe_load(run_path.read_text())
@@ -70,6 +71,9 @@ def _model_settings(instance_root: Path) -> dict[str, int]:
         "period_length_years": period_length_years,
         "max_age": int(block.get("max_age", DEFAULT_MAX_AGE)),
         "horizon_periods": horizon_years // period_length_years,
+        "harvest_acodes": tuple(
+            str(code).lower() for code in block.get("harvest_acodes", DEFAULT_HARVEST_ACODES)
+        ),
     }
 
 
@@ -97,6 +101,18 @@ def build_model(instance_root: Path | str) -> tuple[ForestModel, ModelStats]:
     model.import_yields_section(convert_periods_to_years=period_years)
     model.import_actions_section(convert_periods_to_years=period_years)
     model.import_transitions_section(convert_periods_to_years=period_years)
+    if "null" not in model.actions:
+        model.add_null_action()
+    for acode in settings["harvest_acodes"]:
+        action = model.actions.get(acode)
+        if action is None:
+            raise ModelBuildError(
+                f"Configured harvest action '{acode}' is not defined in the model"
+            )
+        # The ws3 Woodstock importer currently does not set the harvest flag from the
+        # '*ACTION <code> Y' token (UBC-FRESH/ws3#156), so the instance config owns
+        # harvest-action semantics explicitly.
+        action.is_harvest = 1
     model.reset()
     stats = ModelStats(
         model_name=model.model_name,

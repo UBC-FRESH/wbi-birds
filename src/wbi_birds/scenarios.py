@@ -12,7 +12,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 SolverBackend = Literal["highs", "gurobi"]
-ScenarioStatus = Literal["optimal", "infeasible", "error"]
+ScenarioStatus = Literal["optimal", "infeasible", "unbounded", "error"]
 
 
 class SolverConfig(BaseModel):
@@ -69,6 +69,7 @@ class SolverResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     backend: SolverBackend
+    backend_version: str = ""
     status_raw: str = ""
     runtime_seconds: float | None = Field(default=None, ge=0.0)
 

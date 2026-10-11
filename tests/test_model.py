@@ -66,3 +66,17 @@ def test_build_model_rejects_bad_horizon(tmp_path: Path) -> None:
     run.write_text(run.read_text().replace("horizon_years: 80", "horizon_years: 77"))
     with pytest.raises(ModelBuildError, match="multiple"):
         build_model(instance)
+
+
+def test_build_model_sets_harvest_action_flags(tmp_path: Path) -> None:
+    instance = _instance_with_bundle(tmp_path)
+    model, _stats = build_model(instance)
+    assert model.is_harvest("harvest")
+
+
+def test_build_model_rejects_unknown_harvest_action(tmp_path: Path) -> None:
+    instance = _instance_with_bundle(tmp_path)
+    run = instance / "config" / "run.yaml"
+    run.write_text(run.read_text() + "model: {harvest_acodes: [nope]}\n")
+    with pytest.raises(ModelBuildError, match="harvest action"):
+        build_model(instance)
