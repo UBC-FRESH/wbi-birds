@@ -12,7 +12,7 @@ Status: **draft for review** (E-P2.1 / #7). The femic → inputs mapping is fixe
 ## Layout
 
 ```
-<instance-root>/
+<instance-root>/  # one instance = one management unit (TSA)
   manifest.yaml            # provenance + versions + checksums (required)
   config/
     run.yaml               # run configuration (TSAs, horizon, even-flow epsilon, utilization, solver)
