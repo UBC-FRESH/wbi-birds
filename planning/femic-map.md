@@ -71,9 +71,12 @@ cc 80..400; initial-age cap 300 + 10-year snapping) -> `tsa24.{lan,are,yld,act,t
 **optimal, harvest 41,899,620.69 m3, birds 59,432,387.76**.
 Evidence: `femic/external/femic-tsa24-instance/evidence/p113_4_smoke_2026-10-12.md`.
 
-Note the ws3 Woodstock **time-unit contract**: `.are` ages and `.act` action
-timing are in periods (ws3 multiplies by the period length); the bridge handles
-the conversion (`--period-length`).
+Note the ws3 Woodstock **time-unit contract**: `.are` stand ages, `.act`
+action-timing bounds, and `.yld` curve ages are in periods (ws3 multiplies them
+by the period length via `convert_periods_to_years`); `.trn` target rows carry a
+**proportion in percent** (not an age), and the post-treatment age comes from
+the action's `*ACTION <code> Y` flag (targetage 0). The bridge handles all
+conversions (`--period-length`).
 
 ## Verified ws3 semantics (2026-10-12, ws3_hint capability)
 
@@ -84,5 +87,9 @@ against the installed package + HTTP 200 doc URLs) and against the source:
   `Curve.add_points` appends a terminal point at the curve's `xmax` carrying the
   last value (`ws3/core.py`), so curve length never limits yield prediction for
   stands of any age.
-- **`.are` stand ages and `.act` action-timing bounds are periods** (ws3
-  multiplies by the model period length; the bridge converts years -> periods).
+- **`.are` stand ages, `.act` action-timing bounds, and `.yld` curve ages are
+  periods** (ws3 multiplies by the model period length; the bridge converts
+  years -> periods and collapses yearly `.yld` samples to period midpoints).
+- **`.trn` `*TARGET` trailing token is a proportion in percent** (`tprop =
+  value * 0.01`); the post-treatment age comes from the action's `Y` flag
+  (`*ACTION cc Y` -> targetage 0, regeneration/multi-rotation).
