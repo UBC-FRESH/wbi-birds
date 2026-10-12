@@ -15,13 +15,20 @@ legacy WBI convention (``birdaf_*_coeff``).
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
 from ws3.forest import ForestModel
+
+from wbi_birds.responses import (
+    RESPONSE_TABLE_RELPATH,
+    ResponseTable,
+    dtype_key_to_str,
+    read_response_tables,
+)
 
 BIRD_ROW = "bird"
 
@@ -54,6 +61,9 @@ class AnticipationCoefficients:
         }
 
 
+BirdResponse = AnticipationCoefficients | ResponseTable
+
+
 def load_coefficients(instance_root: Path | str, species_code: str) -> AnticipationCoefficients:
     """Load a species' coefficients from the instance's ``bird/coefficients.yaml``."""
     path = Path(instance_root) / "bird" / "coefficients.yaml"
@@ -66,23 +76,45 @@ def load_coefficients(instance_root: Path | str, species_code: str) -> Anticipat
     return AnticipationCoefficients.from_mapping(entry)
 
 
+def load_bird_response(instance_root: Path | str, species_code: str) -> BirdResponse:
+    """Load a species' response: response table if present, else coefficients.
+
+    The response table takes precedence so a v2 ensemble can be staged without
+    removing the legacy coefficients (which remain available for parity).
+    """
+    path = Path(instance_root) / RESPONSE_TABLE_RELPATH
+    if path.is_file():
+        tables = read_response_tables(path)
+        if species_code in tables:
+            return tables[species_code]
+    return load_coefficients(instance_root, species_code)
+
+
 def bird_unit_value(
     model: ForestModel,
     dtype_key: tuple[str, ...],
     age: int,
-    coefficients: AnticipationCoefficients,
+    response: BirdResponse,
 ) -> float:
-    """Bird abundance per hectare for one development type at one age."""
+    """Bird abundance per hectare for one development type at one age.
+
+    ``response`` may be the legacy linear :class:`AnticipationCoefficients` or a
+    precomputed :class:`ResponseTable` produced by evaluating any fitted model on
+    the planning state space. The LP stays linear in the prescription variables
+    because this value is compiled as a fixed row coefficient.
+    """
+    if isinstance(response, ResponseTable):
+        return response.unit_value(dtype_key, age)
     development_type = model.dt(dtype_key)
     softwood = development_type.ycomp("swdvol")
     hardwood = development_type.ycomp("hwdvol")
     if softwood is None or hardwood is None:
         raise ValueError(f"Development type {' '.join(dtype_key)} lacks swdvol/hwdvol yield curves")
     return (
-        coefficients.swvol * softwood[age]
-        + coefficients.hwvol * hardwood[age]
-        + coefficients.age * age
-        + coefficients.intercept
+        response.swvol * softwood[age]
+        + response.hwvol * hardwood[age]
+        + response.age * age
+        + response.intercept
     )
 
 
@@ -90,7 +122,7 @@ def compile_bird_coefficients(
     model: ForestModel,
     path: Any,
     *,
-    coefficients: AnticipationCoefficients,
+    coefficients: BirdResponse,
     acodes: Sequence[str],
 ) -> dict[int, float]:
     """LP constraint-row coefficients for the bird row along one prescription path."""
@@ -108,7 +140,7 @@ def compile_bird_coefficients(
 
 def compile_bird_row(
     model: ForestModel,
-    coefficients: AnticipationCoefficients,
+    coefficients: BirdResponse,
     *,
     acodes: Sequence[str],
 ) -> list[float]:
@@ -125,3 +157,116 @@ def compile_bird_row(
                         total += area * bird_unit_value(model, dtype_key, int(age), coefficients)
         series.append(total)
     return series
+
+
+def _prepare_for_state_space(model: ForestModel) -> None:
+    """Reset areas/actions before a dry prescription-graph pass (mirrors the runner)."""
+    model.initialize_areas()
+    model.reset_actions()
+
+
+def state_space(
+    model: ForestModel,
+    *,
+    ages: Sequence[int] | None = None,
+) -> list[tuple[tuple[str, ...], int]]:
+    """All ``(development type, age)`` pairs currently registered on the model.
+
+    Enumerates development types as they exist now. Transition (regeneration)
+    types are created during prescription-graph compilation, so prefer
+    :func:`reachable_state_space` when building response tables for a full
+    scenario run. Pass ``ages`` to restrict (e.g. the operability window) and
+    keep response tables small. Raises if a requested age is outside a
+    development type's curves.
+    """
+    pairs: list[tuple[tuple[str, ...], int]] = []
+    for dtype_key in model.dtypes:
+        development_type = model.dt(dtype_key)
+        softwood = development_type.ycomp("swdvol")
+        hardwood = development_type.ycomp("hwdvol")
+        if softwood is None or hardwood is None:
+            continue
+        available = {int(year) for year in softwood.x}
+        requested = [int(age) for age in (ages if ages is not None else available)]
+        for age in requested:
+            if age not in available:
+                raise ValueError(
+                    f"Age {age} is not in the yield curves for development type "
+                    f"'{dtype_key_to_str(dtype_key)}'."
+                )
+            pairs.append((tuple(dtype_key), age))
+    return pairs
+
+
+def reachable_state_space(
+    model: ForestModel,
+    *,
+    acodes: Sequence[str] = ("null", "harvest"),
+    ages: Sequence[int] | None = None,
+) -> list[tuple[tuple[str, ...], int]]:
+    """Enumerate every ``(development type, age)`` the prescription graph reaches.
+
+    Transition/regeneration development types are created while prescription
+    graphs are compiled, so a throwaway (unsolved) ``add_problem`` pass is used
+    to materialise them before enumeration. The problem is discarded; the newly
+    created development types remain on the model. Call this **once** and reuse
+    the result for all species when building response tables.
+    """
+    seen: set[tuple[tuple[str, ...], int]] = set()
+
+    def probe(fm: ForestModel, path: Any) -> float:
+        for node in path:
+            data = node.data()
+            seen.add((tuple(data["dtk"]), int(data["age"])))
+        return 0.0
+
+    _prepare_for_state_space(model)
+    model.add_problem(
+        name="__wbi_bird_state_space__",
+        coeff_funcs={"probe": probe, "z": lambda fm, path: 0.0},
+        acodes=list(acodes),
+    )
+    if ages is not None:
+        allowed = {int(age) for age in ages}
+        seen = {pair for pair in seen if pair[1] in allowed}
+    return sorted(seen)
+
+
+def build_response_table(
+    model: ForestModel,
+    species_code: str,
+    predict: Callable[[float, float, int], float],
+    *,
+    states: Sequence[tuple[tuple[str, ...], int]] | None = None,
+    acodes: Sequence[str] = ("null", "harvest"),
+    ages: Sequence[int] | None = None,
+    sd: Callable[[float, float, int], float] | None = None,
+    source: Mapping[str, Any] | None = None,
+) -> ResponseTable:
+    """Evaluate a fitted predictor onto the reachable planning state space.
+
+    ``predict(softwood, hardwood, age)`` returns the fitted (ensemble) response
+    in the same units as the LP bird row (per hectare). The predictor may be
+    arbitrarily non-linear; it is reproduced exactly because the row is a fixed
+    coefficient per ``(development type, age)``. Pass a precomputed ``states``
+    (from :func:`reachable_state_space`) when building tables for several
+    species to avoid repeating the dry enumeration pass.
+    """
+    if states is None:
+        states = reachable_state_space(model, acodes=acodes, ages=ages)
+    values: dict[tuple[tuple[str, ...], int], float] = {}
+    sd_values: dict[tuple[tuple[str, ...], int], float] = {}
+    for dtype_key, age in states:
+        development_type = model.dt(dtype_key)
+        softwood = development_type.ycomp("swdvol")
+        hardwood = development_type.ycomp("hwdvol")
+        assert softwood is not None and hardwood is not None
+        values[(dtype_key, age)] = float(predict(softwood[age], hardwood[age], age))
+        if sd is not None:
+            sd_values[(dtype_key, age)] = float(sd(softwood[age], hardwood[age], age))
+    return ResponseTable(
+        species_code=species_code,
+        values=values,
+        sd=sd_values,
+        source=dict(source or {}),
+    )

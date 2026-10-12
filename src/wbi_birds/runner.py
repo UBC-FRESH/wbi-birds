@@ -21,7 +21,8 @@ from ws3 import opt as ws3opt
 from ws3.forest import ForestModel
 
 from wbi_birds import __version__
-from wbi_birds.bird import AnticipationCoefficients, compile_bird_coefficients
+from wbi_birds.bird import BirdResponse, compile_bird_coefficients
+from wbi_birds.responses import ResponseTable
 from wbi_birds.scenarios import ScenarioResult, SolverResult
 
 VALID_STATUSES = ("optimal", "infeasible", "unbounded")
@@ -41,7 +42,7 @@ class ProblemSpec:
     harvest_acodes: tuple[str, ...] = ("harvest",)
     acodes: tuple[str, ...] = ("null", "harvest")
     measure_scope: Literal["harvest", "landscape"] = "harvest"
-    bird_coefficients: AnticipationCoefficients | None = None
+    bird_coefficients: BirdResponse | None = None
     even_flow_epsilon: float | None = 0.10
     even_flow_ref_period: int | None = None
     flow_expr: str | None = None
@@ -63,7 +64,7 @@ def _coeff_bird_z(
     fm: ForestModel,
     path: Any,
     *,
-    coefficients: AnticipationCoefficients,
+    coefficients: BirdResponse,
     acodes: tuple[str, ...],
 ) -> float:
     """Objective coefficient: total bird abundance along one prescription path."""
@@ -256,7 +257,15 @@ def run_scenario(
     if objective_value is not None:
         result_provenance["objective_value"] = objective_value
     if spec.bird_coefficients is not None:
-        result_provenance["bird_coefficients"] = spec.bird_coefficients.to_constants()
+        if isinstance(spec.bird_coefficients, ResponseTable):
+            table = spec.bird_coefficients
+            result_provenance["bird_response"] = {
+                "species_code": table.species_code,
+                "n_values": len(table.values),
+                "source": dict(table.source),
+            }
+        else:
+            result_provenance["bird_coefficients"] = spec.bird_coefficients.to_constants()
     if provenance:
         result_provenance.update(provenance)
 

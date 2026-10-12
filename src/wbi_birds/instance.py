@@ -18,6 +18,7 @@ from typing import Any
 
 import yaml
 
+from wbi_birds.responses import RESPONSE_TABLE_RELPATH, ResponseTableError, read_response_tables
 from wbi_birds.taxonomy import TAXONOMY_SNAPSHOT
 
 ERROR = "error"
@@ -184,16 +185,12 @@ def _validate_run_config(root: Path, issues: list[Issue]) -> None:
         )
 
 
-def _validate_species_and_coefficients(root: Path, issues: list[Issue]) -> None:
+def _validate_species_and_bird_files(root: Path, issues: list[Issue]) -> None:
     species_cfg, issue = _load_yaml(root / "config" / "species.yaml")
     if issue is not None:
         issues.append(issue)
         return
-    coefficients, issue = _load_yaml(root / "bird" / "coefficients.yaml")
-    if issue is not None:
-        issues.append(issue)
-        return
-    assert species_cfg is not None and coefficients is not None
+    assert species_cfg is not None
 
     entries = species_cfg.get("species")
     if not isinstance(entries, list) or not entries:
@@ -251,43 +248,73 @@ def _validate_species_and_coefficients(root: Path, issues: list[Issue]) -> None:
                     root / "config" / "species.yaml",
                 )
             )
-    if not isinstance(coefficients.get("source"), dict):
-        issues.append(
-            _issue(
-                WARNING,
-                "coefficients.source",
-                "coefficients.yaml should carry a provenance 'source' mapping.",
-                root / "bird" / "coefficients.yaml",
-            )
-        )
-    coeff_species = coefficients.get("species")
-    if not isinstance(coeff_species, dict) or not coeff_species:
+    coeff_path = root / "bird" / "coefficients.yaml"
+    resp_path = root / RESPONSE_TABLE_RELPATH
+    if not coeff_path.is_file() and not resp_path.is_file():
         issues.append(
             _issue(
                 ERROR,
-                "coefficients.empty",
-                "coefficients.yaml must define a non-empty species mapping.",
-                root / "bird" / "coefficients.yaml",
+                "bird.missing",
+                "Provide at least one of bird/coefficients.yaml or bird/response_table.csv.",
+                root / "bird",
             )
         )
         return
-    coeff_codes = set(coeff_species.keys())
-    for missing in sorted(codes - coeff_codes):
+
+    provided: set[str] = set()
+
+    if coeff_path.is_file():
+        coefficients, coeff_issue = _load_yaml(coeff_path)
+        if coeff_issue is not None:
+            issues.append(coeff_issue)
+        else:
+            assert coefficients is not None
+            if not isinstance(coefficients.get("source"), dict):
+                issues.append(
+                    _issue(
+                        WARNING,
+                        "coefficients.source",
+                        "coefficients.yaml should carry a provenance 'source' mapping.",
+                        coeff_path,
+                    )
+                )
+            coeff_species = coefficients.get("species")
+            if not isinstance(coeff_species, dict) or not coeff_species:
+                issues.append(
+                    _issue(
+                        ERROR,
+                        "coefficients.empty",
+                        "coefficients.yaml must define a non-empty species mapping.",
+                        coeff_path,
+                    )
+                )
+            else:
+                provided |= set(coeff_species.keys())
+
+    if resp_path.is_file():
+        try:
+            tables = read_response_tables(resp_path)
+        except ResponseTableError as exc:
+            issues.append(_issue(ERROR, "response_table.invalid", str(exc), resp_path))
+        else:
+            provided |= set(tables.keys())
+
+    for missing in sorted(codes - provided):
         issues.append(
             _issue(
                 ERROR,
-                "coefficients.missing_species",
-                f"Configured species '{missing}' has no fitted coefficients.",
-                root / "bird" / "coefficients.yaml",
+                "bird.missing_species",
+                f"Configured species '{missing}' has no coefficients or response table.",
+                root / "bird",
             )
         )
-    for extra in sorted(coeff_codes - codes):
+    for extra in sorted(provided - codes):
         issues.append(
             _issue(
                 WARNING,
-                "coefficients.extra_species",
-                f"Coefficients exist for '{extra}' but it is not configured.",
-                root / "bird" / "coefficients.yaml",
+                "bird.extra_species",
+                f"Response data exist for '{extra}' but it is not configured.",
+                root / "bird",
             )
         )
 
@@ -333,6 +360,6 @@ def validate_instance(root: Path | str) -> list[Issue]:
     issues: list[Issue] = []
     _validate_manifest(root_path, issues)
     _validate_run_config(root_path, issues)
-    _validate_species_and_coefficients(root_path, issues)
+    _validate_species_and_bird_files(root_path, issues)
     _validate_layout(root_path, issues)
     return issues

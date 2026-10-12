@@ -203,3 +203,29 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
   costs 10-14% of maximum harvest; utilization is an accounting factor (decisions invariant).
 - Evidence published per instance (`evidence/campaign_partition_2026-10-12/`, including
   `*-bmax.csv` + series JSON) to the new Arbutus cloud; `planning/femic-map.md` updated.
+
+## 2026-10-12 — E-P4.5: ensemble response embedding (#33)
+
+- Added `wbi_birds.responses` (stdlib-only): `ResponseTable` + CSV I/O with a provenance
+  sidecar (`response_table.csv.provenance.json`, SHA256), `dtype_key` string round-trip, and
+  merge-preserving staging.
+- `wbi_birds.bird`: `BirdResponse = AnticipationCoefficients | ResponseTable`; `bird_unit_value`
+  and `compile_bird_*` dispatch on either form; `load_bird_response` resolves response table
+  first; `state_space` (registered DTs) and `reachable_state_space` (dry `add_problem` pass that
+  materialises transition/regeneration DTs) + `build_response_table` evaluate **any** fitted
+  predictor exactly onto the planning state space — the LP stays linear in prescription variables
+  without requiring the response to be linear in covariates.
+- `wbi_birds.runner`: `ProblemSpec.bird_coefficients` accepts `ResponseTable`; provenance records
+  `bird_response` (species, value count, source).
+- `wbi_birds.fit`: `stage_response_table` / `stage_response_table_from_csv`.
+- `wbi_birds.instance`: accepts `bird/response_table.csv` **or** `bird/coefficients.yaml` (both
+  allowed; response table wins); validates headers/numerics/coverage; codes `bird.missing`,
+  `bird.missing_species`, `bird.extra_species`, `response_table.invalid`.
+- `wbi_birds.forge`: `fit_antifunction` mode `response`; scenario hook uses `load_bird_response`.
+- Tests: new `tests/test_responses.py`; response-table exact-evaluation + scenario + fallback in
+  `test_bird.py`; staging in `test_fit.py`; validation accept/reject in `test_instance.py`.
+  Full suite 96 passed; `ruff check`/`format` and `sphinx-build -W` green.
+- Docs: `docs/concepts.rst`, `planning/data-contract.md`, template `bird/README.md`.
+
+Cross-links: manuscript `planning/bird-model-v2-spec.md` §5/§9/§11; review item M1;
+`UBC-FRESH/wbi-birds-manuscript#3`. Issue #33.

@@ -27,10 +27,13 @@ Status: **draft for review** (E-P2.1 / #7). The femic → inputs mapping is fixe
 
 ## Anticipation row (`bird`)
 
-- Coefficients live in `bird/coefficients.yaml` (`species: {code: {swvol, hwvol, age, intercept}}`); legacy WBI naming (`birdaf_*_coeff`).
-- The engine evaluates the row per development type: `bird(age) = c1*swdvol(age) + c2*hwdvol(age) + c3*age + c4` (area-weighted in LP coefficients). It is **not** a ws3 complex yield — ws3 resolvers cannot nest calls, and the engine also needs the row to cover runtime-created development types.
+- Two response forms are supported; resolution order is **response table first, else coefficients**:
+  - `bird/coefficients.yaml` (`species: {code: {swvol, hwvol, age, intercept}}`; legacy WBI naming `birdaf_*_coeff`) — the linear anticipation function `bird(age) = c1*swdvol(age) + c2*hwdvol(age) + c3*age + c4` (parity path).
+  - `bird/response_table.csv` (`species_code, development_type, age, bird_value, bird_value_sd`) — precomputed values for **any** fitted response, evaluated once on the planning state space (see `wbi_birds.bird.reachable_state_space` / `build_response_table`). `development_type` is `"|".join(dtype_key)`. Because the row is a fixed coefficient per (dtype, age), the LP stays linear in the prescription variables regardless of the regression's functional form; this is the v2 ensemble path (`planning/bird-model-v2-spec.md` in the manuscript repo).
+- A response table alone is valid; carrying both is allowed (response table wins, coefficients retained for parity).
+- The engine evaluates the row per development type: area-weighted in LP coefficients. It is **not** a ws3 complex yield — ws3 resolvers cannot nest calls, and the engine also needs the row to cover runtime-created development types (transition/regeneration types are materialised by a dry `add_problem` pass when enumerating the state space).
 - Derived tables: `wbi_birds.ingest` streams the private EBD extract into derived CSVs + provenance sidecars (suite/months/complete-checklist filters; observer identifiers dropped).
-- Fitting: `provided` (R-lineage coefficients staged + validated) or engine-native `poisson` MLE (`wbi_birds.fit`); both merge into `bird/coefficients.yaml` with a `source.fit` marker.
+- Fitting: `provided` (R-lineage coefficients staged + validated), engine-native `poisson` MLE (`wbi_birds.fit`), or `response` (stage an externally produced response table). All merge into the instance with a `source.fit` marker.
 - Canonical suite: nine species across four guilds (`wbi_birds.registry`); codes and common names are checked against the eBird taxonomy snapshot (`wbi_birds.taxonomy`).
 - `measure_scope`: `harvest` (default) or `landscape` (row sums over `null` + `harvest` prescriptions). Bird scenarios materialize the row on every period (sentinel bounds where unconstrained) and record the per-period series **exactly from the LP solution**.
 

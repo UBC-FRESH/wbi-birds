@@ -7,15 +7,17 @@ import numpy as np
 import pytest
 import yaml
 
-from wbi_birds.bird import AnticipationCoefficients, load_coefficients
+from wbi_birds.bird import AnticipationCoefficients, load_bird_response, load_coefficients
 from wbi_birds.fit import (
     FitError,
     fit_and_stage,
     fit_poisson_glm,
     make_covariates_csv,
     stage_coefficients,
+    stage_response_table,
     update_instance_coefficients,
 )
+from wbi_birds.responses import ResponseTable
 
 INSTANCE_FIXTURE = Path(__file__).parent / "fixtures" / "instance_valid"
 
@@ -126,3 +128,24 @@ def test_update_instance_coefficients_creates_missing_file(tmp_path: Path) -> No
     )
     assert path.is_file()
     assert load_coefficients(instance, "rebnut").intercept == 1.0
+
+
+def test_stage_response_table_round_trip(tmp_path: Path) -> None:
+    instance = _instance(tmp_path)
+    dtype = ("dt", "0", "1", "1", "1")
+    table = ResponseTable(species_code="rebnut", values={(dtype, 80): 12.5})
+    path = stage_response_table(instance, table)
+    assert path.is_file()
+    loaded = load_bird_response(instance, "rebnut")
+    assert isinstance(loaded, ResponseTable)
+    assert loaded.unit_value(dtype, 80) == 12.5
+    assert loaded.source["fit"] == "provided"
+    # other species still fall back to coefficients
+    assert isinstance(load_bird_response(instance, "borchi2"), AnticipationCoefficients)
+
+
+def test_stage_response_table_unknown_species(tmp_path: Path) -> None:
+    instance = _instance(tmp_path)
+    table = ResponseTable(species_code="nope1", values={(("dt",), 1): 1.0})
+    with pytest.raises(FitError, match="Unknown species code"):
+        stage_response_table(instance, table)
