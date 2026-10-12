@@ -175,3 +175,14 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
   (legacy bird metric ≠ v2 landscape row).
 - Campaign scenario design aligned to the paper's text: 11 scenarios partitioning the bird range
   from nadir to max (`cbird0.00`..`cbird1.00`); partition sweep running.
+
+## 2026-10-12 — Bird-objective solves (#31)
+
+- `ProblemSpec.flow_expr` (even-flow row expression; defaults to `objective_expr`) and
+  `objective_expr="bird"` support (z = total bird abundance along the path, requires
+  `bird_coefficients`); clear error when even-flow is requested with a bird objective and no
+  `flow_expr`; harvest accounting uses `flow_expr` (falls back to `totvol` for bird objectives).
+- Tests: bird-max total >= harvest-objective nadir; missing-flow-expr error. Suite 81 green;
+  docs `-W` clean.
+- Enables the manuscript's maximum-bird endpoint ("maximizing bird abundance in the objective
+  function") for the campaign partition; supersedes the bisection proxy.
