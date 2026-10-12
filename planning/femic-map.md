@@ -74,3 +74,15 @@ Evidence: `femic/external/femic-tsa24-instance/evidence/p113_4_smoke_2026-10-12.
 Note the ws3 Woodstock **time-unit contract**: `.are` ages and `.act` action
 timing are in periods (ws3 multiplies by the period length); the bridge handles
 the conversion (`--period-length`).
+
+## Verified ws3 semantics (2026-10-12, ws3_hint capability)
+
+Confirmed via the ws3 agent capability surface (`ws3_hint`, citations validated
+against the installed package + HTTP 200 doc URLs) and against the source:
+
+- **Yield curves extend flat (constant) beyond the last (x, y) data point** --
+  `Curve.add_points` appends a terminal point at the curve's `xmax` carrying the
+  last value (`ws3/core.py`), so curve length never limits yield prediction for
+  stands of any age.
+- **`.are` stand ages and `.act` action-timing bounds are periods** (ws3
+  multiplies by the model period length; the bridge converts years -> periods).
