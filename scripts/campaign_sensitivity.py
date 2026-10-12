@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
                 management_unit=args.unit,
                 constraint_floor=floors,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             print(f"{scenario_id} | EXCEPTION | {type(exc).__name__}: {exc}", flush=True)
             continue
         print(
