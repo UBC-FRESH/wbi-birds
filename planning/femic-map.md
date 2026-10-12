@@ -92,6 +92,15 @@ ceiling between +5% and +8%; TSA08/40/41 buy +10..22% birds for ≤3% harvest
 loss. Scenario CSVs + README:
 `femic/external/femic-tsa<code>-instance/evidence/campaign_frontier_2026-10-12/`.
 
+The **campaign partition** (the manuscript's scenario design) then ran: 11
+scenarios partitioning the bird-abundance range between the nadir (max-harvest)
+and maximum-bird solutions into 10 evenly-spaced intervals (per-period floors,
+period 1 exempt; max-bird solved directly via `objective_expr="bird"` +
+`flow_expr`, engine #31). Bird ranges: +12.2% (TSA16) to +70.2% (TSA41); top
+scenario harvest losses −11% (TSA08) to −83% (TSA24); even-flow ε = 0.1 costs
+10–14% of maximum harvest (sensitivity evidence). Scenario CSVs + README:
+`femic/external/femic-tsa<code>-instance/evidence/campaign_partition_2026-10-12/`.
+
 Note the ws3 Woodstock **time-unit contract**: `.are` stand ages, `.act`
 action-timing bounds, and `.yld` curve ages are in periods (ws3 multiplies them
 by the period length via `convert_periods_to_years`); `.trn` target rows carry a

@@ -194,3 +194,12 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
   (epsilon/utilization at matched targets), `frontier_analyze.py` (trade-off tables).
 - True max-bird endpoint exceeds the bisection proxy by 5-9% (TSA24 +9.2%, TSA16 +5.6%),
   confirming the direct bird-objective solve supersedes the proxy for the campaign partition.
+
+## 2026-10-12 — Campaign partition complete (11 scenarios x 5 TSAs)
+
+- The manuscript's scenario design is executed end-to-end: 11 bird scenarios partitioning the
+  nadir-to-max range (max-bird solved directly, #31). Bird ranges +12.2% (TSA16) to +70.2%
+  (TSA41); top-scenario harvest losses -11% (TSA08) to -83% (TSA24); even-flow epsilon = 0.1
+  costs 10-14% of maximum harvest; utilization is an accounting factor (decisions invariant).
+- Evidence published per instance (`evidence/campaign_partition_2026-10-12/`, including
+  `*-bmax.csv` + series JSON) to the new Arbutus cloud; `planning/femic-map.md` updated.
