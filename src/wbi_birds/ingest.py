@@ -7,13 +7,20 @@ store** — the engine emits derived products only, and observer identifiers are
 never carried into the output.
 
 Legacy-compatible convention: observation count ``X`` maps to ``0.0``.
+
+Accepts either an EBD ``.txt`` file or a ``.zip`` archive containing one
+(selects the largest ``ebd_*.txt`` member).
 """
 
 from __future__ import annotations
 
 import csv
 import hashlib
+import io
 import json
+import zipfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -76,6 +83,7 @@ class IngestSummary:
     rows_scanned: int
     rows_kept: int
     per_species: dict[str, int]
+    source_member: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -101,6 +109,26 @@ def _resolve_columns(header: list[str]) -> dict[str, int]:
     return index
 
 
+@contextmanager
+def _open_ebd_text(path: Path) -> Iterator[tuple[Any, str]]:
+    """Yield (text stream, member name) for an EBD ``.txt`` or ``.zip`` archive."""
+    if path.suffix.lower() == ".zip":
+        with zipfile.ZipFile(path) as archive:
+            members = [
+                name
+                for name in archive.namelist()
+                if name.lower().endswith(".txt") and "ebd_" in Path(name).name.lower()
+            ]
+            if not members:
+                raise ValueError(f"No EBD .txt member found in archive: {path}")
+            member = max(members, key=lambda name: archive.getinfo(name).file_size)
+            with archive.open(member) as raw:
+                yield io.TextIOWrapper(raw, encoding="utf-8", newline=""), member
+    else:
+        with path.open(newline="", encoding="utf-8") as handle:
+            yield handle, path.name
+
+
 def ingest_ebd(spec: IngestSpec) -> IngestSummary:
     """Filter an EBD extract into a derived point-level table + provenance sidecar."""
     for code in spec.species:
@@ -119,7 +147,7 @@ def ingest_ebd(spec: IngestSpec) -> IngestSummary:
     per_species = dict.fromkeys(spec.species, 0)
 
     with (
-        source_path.open(newline="", encoding="utf-8") as source,
+        _open_ebd_text(source_path) as (source, source_member),
         out_path.open("w", newline="", encoding="utf-8") as destination,
     ):
         reader = csv.reader(source, delimiter="\t")
@@ -189,6 +217,7 @@ def ingest_ebd(spec: IngestSpec) -> IngestSummary:
         rows_scanned=rows_scanned,
         rows_kept=rows_kept,
         per_species=dict(sorted(per_species.items())),
+        source_member=source_member,
     )
     sidecar = out_path.with_name(out_path.name + ".provenance.json")
     sidecar.write_text(
