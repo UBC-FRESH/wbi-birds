@@ -319,3 +319,18 @@ Issue #35.
   FreshForge `fit_antifunction` **ensemble mode** is deferred: it needs the instance
   state space, so the pipeline must compile the instance before fitting (topology
   change tracked for the workflow blueprint).
+
+## 2026-10-12 — E-P4.10: guild/composite indicators + post-solve diversity (#42)
+
+- `wbi_birds.indicators`: `build_indicator_response` (weighted linear sum of species
+  response tables on a shared state space; SD by independent-error sum), `guild_weights`
+  / `guild_indicators` (sum or mean scheme; guild membership from the registry),
+  `composite_weights` / `composite_indicator` (equal, guild-balanced, or custom
+  conservation weights), and `diversity_metrics` (expected richness, Shannon, effective
+  species) computed from realised per-species series after solving.
+- Indicator rows are LP-linear by construction (fixed per-(dtype, age) values), so they
+  compile through the existing single-row runner with no runner change. Non-separable
+  diversity metrics are explicitly kept out of the LP.
+- Tests: `tests/test_indicators.py` (10 cases) — hand-computed weighted sums, SD
+  propagation, registry-driven guilds, mean/balanced/custom schemes, invalid weights,
+  state-space mismatch, Shannon/richness hand values.
