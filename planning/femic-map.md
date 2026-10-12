@@ -85,6 +85,13 @@ no bird floors):
 
 Evidence: `femic/external/femic-tsa24-instance/evidence/p113_5_campaign_config_2026-10-12.md`.
 
+Bird-floor frontier on the same configuration (floors on periods 2..20 as
+factors of each TSA's ε=0.1 baseline bird series, maximize harvest): two
+regimes — TSA24/16 reach +4.8% birds at −17..−19% harvest with a hard bird
+ceiling between +5% and +8%; TSA08/40/41 buy +10..22% birds for ≤3% harvest
+loss. Scenario CSVs + README:
+`femic/external/femic-tsa<code>-instance/evidence/campaign_frontier_2026-10-12/`.
+
 Note the ws3 Woodstock **time-unit contract**: `.are` stand ages, `.act`
 action-timing bounds, and `.yld` curve ages are in periods (ws3 multiplies them
 by the period length via `convert_periods_to_years`); `.trn` target rows carry a

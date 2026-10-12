@@ -158,3 +158,11 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
   target proportion in percent (post-treatment age from the action `Y` flag).
 - `planning/femic-map.md` updated with the campaign configuration + baselines; bird-floor frontier
   sweep (factors 1.00–1.15 of the ε=0.1 baseline series, periods 2..20) running.
+
+## 2026-10-12 — Five-TSA campaign frontier (bird floors, ε=0.1)
+
+- Bird-floor frontier complete on all five campaign models (floors 1.00–1.15× the ε=0.1 baseline
+  per-period bird series, periods 2..20, maximize harvest): TSA24/16 hit a hard bird ceiling
+  between +5% and +8% with steep harvest losses (−17..−19% at +4.8%); TSA08/40/41 buy +10–22%
+  birds for ≤3% harvest. Scenario CSVs + README published under
+  `femic/external/femic-tsa<XX>-instance/evidence/campaign_frontier_2026-10-12/`.
