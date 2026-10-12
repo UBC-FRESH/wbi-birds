@@ -60,3 +60,17 @@ Graphs: `external/femic-tsa<code>-instance/workflows/freshforge/tsa<code>_model_
 
 `tests/test_mapping.py`: bundle loads, staging produces `inputs/ws3/*` and the instance validator
 stays green; missing/empty sections are rejected.
+
+## Verified end-to-end (2026-10-12)
+
+The P113.4 smoke executed the full chain on fresh public data and solved a
+genuine ε-scenario in this engine: fresh VRI 2025 clip -> VDYP (Wine) ->
+TIPSY/BTC (Wine) -> model-input bundle -> Woodstock export (species splits;
+cc 80..400; initial-age cap 300 + 10-year snapping) -> `tsa24.{lan,are,yld,act,trn}`
+-> `build_model` (54 development types, 132 curves, 16 x 5-year periods) ->
+**optimal, harvest 41,899,620.69 m3, birds 59,432,387.76**.
+Evidence: `femic/external/femic-tsa24-instance/evidence/p113_4_smoke_2026-10-12.md`.
+
+Note the ws3 Woodstock **time-unit contract**: `.are` ages and `.act` action
+timing are in periods (ws3 multiplies by the period length); the bridge handles
+the conversion (`--period-length`).
