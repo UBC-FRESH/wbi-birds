@@ -83,6 +83,7 @@ Goal: reproduce legacy RBNU / 5-TSA results within tolerance; diagnostics.
 - [x] `scripts/parity_check.py` + `planning/parity-reference-acquisition.md` — standalone CLI + acquisition path (real run: #24)
 - [ ] Anomaly adjudication with the manuscript claims map
 - [x] FreshForge `run_node` hook for `verify_parity` — instance-wide comparison vs long-format reference tables; `strict` gating; JSON+Markdown reports under `results/parity/`
+- [x] Bird-objective solves (maximum bird abundance endpoint) — `ProblemSpec.objective_expr='bird'` + `flow_expr` (#31)
 - [ ] FreshForge hooks for `compute_frontiers` / `analyze_frontiers` (analysis layer)
 - [x] Five-TSA genuine-model campaign baselines (THLB-filtered, 200y/10y, ε = 0.1) — recorded in `planning/femic-map.md`; legacy parity (#24) still gated on the legacy reference archive
 

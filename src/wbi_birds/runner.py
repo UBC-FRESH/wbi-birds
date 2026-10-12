@@ -44,6 +44,7 @@ class ProblemSpec:
     bird_coefficients: AnticipationCoefficients | None = None
     even_flow_epsilon: float | None = 0.10
     even_flow_ref_period: int | None = None
+    flow_expr: str | None = None
 
 
 def _coeff_z(fm: ForestModel, path: Any, expr: str) -> float:
@@ -56,6 +57,18 @@ def _coeff_z(fm: ForestModel, path: Any, expr: str) -> float:
                 t, expr, data["acode"], [data["dtk"]], data["age"], coeff=False
             )
     return result
+
+
+def _coeff_bird_z(
+    fm: ForestModel,
+    path: Any,
+    *,
+    coefficients: AnticipationCoefficients,
+    acodes: tuple[str, ...],
+) -> float:
+    """Objective coefficient: total bird abundance along one prescription path."""
+    row = compile_bird_coefficients(fm, path, coefficients=coefficients, acodes=acodes)
+    return float(sum(row.values()))
 
 
 def _coeff_flow(fm: ForestModel, path: Any, expr: str, acodes: tuple[str, ...]) -> dict[int, float]:
@@ -123,8 +136,18 @@ def run_scenario(
         )
     else:
         row_func = partial(_coeff_flow, expr=spec.constraint_expr, acodes=row_acodes)
+    if spec.objective_expr == "bird":
+        if spec.bird_coefficients is None:
+            raise ScenarioRunError("objective_expr='bird' requires bird_coefficients")
+        z_func: Callable[..., Any] = partial(
+            _coeff_bird_z,
+            coefficients=spec.bird_coefficients,
+            acodes=row_acodes,
+        )
+    else:
+        z_func = partial(_coeff_z, expr=spec.objective_expr)
     coeff_funcs: dict[str, Callable[..., Any]] = {
-        "z": partial(_coeff_z, expr=spec.objective_expr),
+        "z": z_func,
         f"row_{spec.constraint_row}": row_func,
     }
     cflw_e: dict[str, Any] | None = None
@@ -132,9 +155,12 @@ def run_scenario(
         ref_period = (
             spec.even_flow_ref_period if spec.even_flow_ref_period is not None else fm.periods[-1]
         )
-        coeff_funcs["cflw"] = partial(
-            _coeff_flow, expr=spec.objective_expr, acodes=spec.harvest_acodes
-        )
+        flow_expr = spec.flow_expr or spec.objective_expr
+        if flow_expr == "bird":
+            raise ScenarioRunError(
+                "even-flow with a bird objective requires spec.flow_expr (e.g. 'totvol * 0.85')"
+            )
+        coeff_funcs["cflw"] = partial(_coeff_flow, expr=flow_expr, acodes=spec.harvest_acodes)
         cflw_e = {"cflw": (dict.fromkeys(fm.periods, spec.even_flow_epsilon), ref_period)}
 
     cgen_data: dict[str, Any] | None = None
@@ -189,9 +215,12 @@ def run_scenario(
             verbose=False,
             compile_c_ycomps=True,
         )
+        harvest_expr = spec.flow_expr or (
+            spec.objective_expr if spec.objective_expr != "bird" else "totvol"
+        )
         harvest_series = [
             sum(
-                float(fm.compile_product(t, spec.objective_expr, acode=acode))
+                float(fm.compile_product(t, harvest_expr, acode=acode))
                 for acode in spec.harvest_acodes
             )
             for t in fm.periods
@@ -218,6 +247,7 @@ def run_scenario(
     diagnostics = [f"ws3 solver status: {raw_status}"]
     result_provenance = {
         "objective_expr": spec.objective_expr,
+        "flow_expr": spec.flow_expr,
         "constraint_expr": spec.constraint_expr,
         "even_flow_epsilon": spec.even_flow_epsilon,
         "measure_scope": spec.measure_scope,
