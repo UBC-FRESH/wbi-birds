@@ -190,7 +190,11 @@ def run_scenario(
             compile_c_ycomps=True,
         )
         harvest_series = [
-            float(fm.compile_product(t, spec.objective_expr, acode="harvest")) for t in fm.periods
+            sum(
+                float(fm.compile_product(t, spec.objective_expr, acode=acode))
+                for acode in spec.harvest_acodes
+            )
+            for t in fm.periods
         ]
         if spec.bird_coefficients is not None:
             lhs_values = problem.get_all_constraints_lhs_values()
@@ -204,7 +208,10 @@ def run_scenario(
             ]
         else:
             constraint_series = [
-                float(fm.compile_product(t, spec.constraint_expr, acode="harvest"))
+                sum(
+                    float(fm.compile_product(t, spec.constraint_expr, acode=acode))
+                    for acode in spec.harvest_acodes
+                )
                 for t in fm.periods
             ]
 
