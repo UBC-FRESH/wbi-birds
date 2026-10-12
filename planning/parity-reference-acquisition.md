@@ -48,6 +48,37 @@ Either way the raw archive is stored in the private data store
      (`planning/data-contract.md` § Anticipation row).
 4. Write the CSV, compute its SHA256, and record it with the run in #24.
 
+## Legacy constraint construction (decoded 2026-10-12 from `spadesws3.py`)
+
+The legacy scenario was built by `_gen_scen_base` in
+`modules/spades_ws3/python/spadesws3.py` from `input/targets.csv` (indexed by
+`tsa`, `year`; columns `vcut`, `abrn`, `cflw_acut_e`, `cgen_vcut_e`,
+`cgen_abrn_e`):
+
+- **Volume-cut band**: `ub = vcut(year) * period_length`,
+  `lb = ub * (1 - cgen_vcut_e)` (per period).
+- **Area-cut even-flow**: `cflw_e` on `cacut_<tsa>` with `cflw_acut_e` per year
+  and the reference period = the last period (the v2 engine's
+  `even_flow_epsilon` mirrors this form).
+- **Bird row(s)**: `cabrn-thlb<i>_<tsa>` per IFM class `i` with
+  `lb = abrn(year) * p_i * period_length * (1 - cgen_abrn_e)` and
+  `ub = abrn(year) * p_i * period_length`, where `p_i` is the IFM class's area
+  fraction at period 0 -- i.e. the legacy bird metric is an abundance-per-area
+  index accumulated over the THLB portion, expressed in bird-years
+  (`* period_length`).
+- **Objective**: production params use `obj_mode = 'min_harea'`
+  (minimize harvested area, `zexpr = '1.'`); `max_hvol` (`totvol * util`,
+  util 0.85) is the alternative. The manuscript Results text describes the
+  bird-range partition (`cbird0.0` .. `cbird1.0`, 11 evenly spaced scenarios);
+  the v2 engine reproduces this via per-period bird floors interpolated
+  between the nadir and max feasible series.
+
+**Parity implication**: the legacy bird metric is *not* the same row as the v2
+landscape bird row (v2 = full anticipation model over the model landbase;
+legacy = per-IFM THLB-scaled index in bird-years). Record the transformation
+when the reference archive is exported, and prefer a matched-resolution
+legacy re-run for the tolerance comparison.
+
 ## Running the comparison
 
 ```bash

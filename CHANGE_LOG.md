@@ -166,3 +166,12 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
   between +5% and +8% with steep harvest losses (−17..−19% at +4.8%); TSA08/40/41 buy +10–22%
   birds for ≤3% harvest. Scenario CSVs + README published under
   `femic/external/femic-tsa<XX>-instance/evidence/campaign_frontier_2026-10-12/`.
+
+## 2026-10-12 — Legacy scenario design decoded (parity prep)
+
+- `planning/parity-reference-acquisition.md` now records the legacy constraint construction from
+  `spadesws3.py` (`targets.csv` vcut/abrn bands, per-IFM THLB bird index in bird-years, cflw
+  reference = last period, `min_harea`/`max_hvol` objective modes) plus the parity implication
+  (legacy bird metric ≠ v2 landscape row).
+- Campaign scenario design aligned to the paper's text: 11 scenarios partitioning the bird range
+  from nadir to max (`cbird0.00`..`cbird1.00`); partition sweep running.
