@@ -23,6 +23,7 @@ import yaml
 from scipy.optimize import minimize
 
 from wbi_birds.bird import AnticipationCoefficients
+from wbi_birds.responses import ResponseTable, merge_response_table, read_response_tables
 from wbi_birds.taxonomy import TAXONOMY_SNAPSHOT
 
 FEATURES = ("swvol", "hwvol", "age")
@@ -189,6 +190,49 @@ def update_instance_coefficients(
     source = dict(source)
     source["fit"] = fit_note
     return _write_coefficients(root, species_map, source=source)
+
+
+def stage_response_table(
+    instance_root: Path | str,
+    table: ResponseTable,
+    *,
+    fit_note: str = "provided",
+) -> Path:
+    """Stage one species' precomputed response table into an instance.
+
+    Response tables carry the exact per-(development type, age) values of any
+    fitted model (linear or not); see :mod:`wbi_birds.responses`.
+    """
+    if table.species_code not in TAXONOMY_SNAPSHOT:
+        raise FitError(f"Unknown species code '{table.species_code}'")
+    if not table.values:
+        raise FitError(f"Response table for '{table.species_code}' has no values")
+    source = dict(table.source)
+    source["fit"] = fit_note
+    staged = ResponseTable(
+        species_code=table.species_code,
+        values=table.values,
+        sd=table.sd,
+        source=source,
+    )
+    return merge_response_table(Path(instance_root), staged)
+
+
+def stage_response_table_from_csv(
+    source_csv: Path | str,
+    instance_root: Path | str,
+    species_code: str,
+    *,
+    fit_note: str = "provided",
+) -> Path:
+    """Stage one species from an externally produced ``response_table.csv``."""
+    tables = read_response_tables(Path(source_csv))
+    if species_code not in tables:
+        raise FitError(
+            f"No response table for species '{species_code}' in {source_csv} "
+            f"(available: {', '.join(sorted(tables))})."
+        )
+    return stage_response_table(instance_root, tables[species_code], fit_note=fit_note)
 
 
 def fit_and_stage(

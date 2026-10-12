@@ -29,18 +29,19 @@ The normative layout lives in ``planning/data-contract.md`` in the repository.
 Bird anticipation row
 ---------------------
 
-Bird abundance enters the LP as a linear *anticipation row* per development type
-(age-based), materialised in the model itself:
+Bird abundance enters the LP as a fixed row coefficient per (development type,
+age), materialised in the model itself. Two response forms are supported:
 
-.. math::
+- ``bird/coefficients.yaml`` — the legacy linear anticipation function
+  ``bird = c1*swdvol + c2*hwdvol + c3*age + c4`` (kept for parity).
+- ``bird/response_table.csv`` — precomputed values for any fitted response
+  (linear or not), evaluated once on the planning state space. Because the row
+  is a fixed coefficient, the LP stays linear in the prescription variables
+  without requiring the ecological response itself to be linear in covariates.
 
-   \mathrm{bird} = c_1 \cdot \mathrm{swdvol} + c_2 \cdot \mathrm{hwdvol}
-   + c_3 \cdot \mathrm{age} + c_4
-
-with per-species coefficients fitted from eBird observations against forest
-attributes (``provided`` mode: the manuscript's R lineage; ``poisson`` mode: the
-engine-native MLE). Because the row is part of the LP, bird series are read
-exactly from the LP solution — not reconstructed from schedules afterwards.
+Resolution order is response table first, else coefficients. Because the row is
+part of the LP, bird series are read exactly from the LP solution — not
+reconstructed from schedules afterwards.
 
 Scenario semantics
 ------------------

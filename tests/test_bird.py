@@ -1,16 +1,23 @@
 from __future__ import annotations
 
+import math
 import shutil
 from pathlib import Path
+
+import pytest
 
 from wbi_birds.bird import (
     AnticipationCoefficients,
     bird_unit_value,
+    build_response_table,
     compile_bird_row,
+    load_bird_response,
     load_coefficients,
+    state_space,
 )
 from wbi_birds.mapping import load_ws3_sections, stage_ws3_sections
 from wbi_birds.model import build_model
+from wbi_birds.responses import ResponseTable, write_response_tables
 from wbi_birds.runner import ProblemSpec, run_scenario
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "femic_ws3_bundle"
@@ -120,3 +127,63 @@ def test_bird_row_matches_manual_sum(tmp_path: Path) -> None:
     for a, b in zip(series, manual, strict=True):
         assert abs(a - b) < 1e-9
     assert any(value > 0 for value in series)
+
+
+def test_build_response_table_exact_nonlinear(fixture_model) -> None:
+    """A non-linear fitted response is reproduced exactly on the state space."""
+    model = fixture_model
+    ages = (40, 80, 120)
+
+    def predict(softwood: float, hardwood: float, age: int) -> float:
+        return 1.5 + 0.01 * softwood + 0.02 * hardwood + math.exp(-age / 100.0)
+
+    table = build_response_table(
+        model, "rebnut", predict, ages=ages, sd=lambda *_: 0.3, source={"fit": "test"}
+    )
+    assert table.species_code == "rebnut"
+    assert table.values  # reachable states were materialised and evaluated
+    for dtype_key, age in table.values:
+        development_type = model.dt(dtype_key)
+        softwood = development_type.ycomp("swdvol")[age]
+        hardwood = development_type.ycomp("hwdvol")[age]
+        assert bird_unit_value(model, dtype_key, age, table) == predict(softwood, hardwood, age)
+        assert table.unit_sd(dtype_key, age) == 0.3
+
+
+def test_state_space_restricted_and_invalid_age(fixture_model) -> None:
+    model = fixture_model
+    pairs = state_space(model, ages=[0, 40])
+    assert len(pairs) == len(model.dtypes) * 2
+    with pytest.raises(ValueError, match="not in the yield curves"):
+        state_space(model, ages=[9999])
+
+
+def test_load_bird_response_prefers_table(tmp_path: Path) -> None:
+    instance = tmp_path / "instance"
+    shutil.copytree(INSTANCE_FIXTURE, instance)
+    dtype = ("dt", "0", "1", "1", "1")
+    write_response_tables(
+        instance / "bird" / "response_table.csv",
+        [ResponseTable(species_code="rebnut", values={(dtype, 80): 12.5})],
+    )
+    assert isinstance(load_bird_response(instance, "rebnut"), ResponseTable)
+    assert isinstance(load_bird_response(instance, "borchi2"), AnticipationCoefficients)
+
+
+def test_bird_row_response_table_scenario(fixture_model) -> None:
+    """A response-table row solves end-to-end and records its provenance."""
+    model = fixture_model
+    table = build_response_table(
+        model, "rebnut", lambda sw, hw, age: 0.5 + 0.001 * sw - 0.002 * hw + 1e-4 * age
+    )
+    spec = ProblemSpec(
+        objective_expr="totvol * 0.85",
+        constraint_row="bird_row",
+        constraint_expr="bird",
+        even_flow_epsilon=None,
+        measure_scope="landscape",
+        bird_coefficients=table,
+    )
+    result = run_scenario(model, spec, scenario_id="tsa24-bird-rt", management_unit="TSA24")
+    assert result.status == "optimal", result.diagnostics
+    assert result.provenance["bird_response"]["species_code"] == "rebnut"

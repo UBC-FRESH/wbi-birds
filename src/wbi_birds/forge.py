@@ -22,8 +22,13 @@ from freshforge.records import (
 )
 from ws3 import opt as ws3opt
 
-from wbi_birds.bird import load_coefficients
-from wbi_birds.fit import fit_poisson_glm, stage_coefficients, update_instance_coefficients
+from wbi_birds.bird import load_bird_response
+from wbi_birds.fit import (
+    fit_poisson_glm,
+    stage_coefficients,
+    stage_response_table_from_csv,
+    update_instance_coefficients,
+)
 from wbi_birds.ingest import IngestSpec, ingest_ebd
 from wbi_birds.mapping import load_ws3_sections, locate_ws3_bundle, stage_ws3_sections
 from wbi_birds.model import build_model
@@ -248,7 +253,7 @@ class WbiProvider:
             if required not in params:
                 raise ValueError(f"Node parameters must provide '{required}'")
         bird_species = params.get("bird_species")
-        bird_coefficients = load_coefficients(instance, str(bird_species)) if bird_species else None
+        bird_response = load_bird_response(instance, str(bird_species)) if bird_species else None
         measure_scope = str(
             params.get("measure_scope") or ("landscape" if bird_species else "harvest")
         )
@@ -257,7 +262,7 @@ class WbiProvider:
             constraint_row=str(params.get("constraint_row", "constraint")),
             constraint_expr=str(params["constraint_expr"]),
             measure_scope=measure_scope,  # type: ignore[arg-type]
-            bird_coefficients=bird_coefficients,
+            bird_coefficients=bird_response,
             even_flow_epsilon=params.get("even_flow_epsilon", 0.10),
         )
         model, _stats = build_model(instance)
@@ -367,8 +372,19 @@ class WbiProvider:
                     "values": result.coefficients.to_constants(),
                 }
             }
+        elif mode == "response":
+            for required in ("response_table", "species"):
+                if required not in params:
+                    raise ValueError(f"'{required}' is required for mode=response")
+            source_csv = Path(context.resolve_path(str(params["response_table"])))
+            path = stage_response_table_from_csv(
+                source_csv, instance, str(params["species"]), fit_note="provided"
+            )
+            outputs = {"coefficients": {"mode": "response", "source": str(source_csv)}}
         else:
-            raise ValueError(f"Unknown fit mode '{mode}' (expected 'provided' or 'poisson')")
+            raise ValueError(
+                f"Unknown fit mode '{mode}' (expected 'provided', 'poisson' or 'response')"
+            )
         return ProviderRunResult(
             status=RunStatus.SUCCESS,
             outputs=outputs,

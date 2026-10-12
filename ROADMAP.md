@@ -63,7 +63,7 @@ Goal: model builder (Model I even-flow + ε constraints) + scenario runner.
 
 Phase branch: `feature/issue-4-ep4-bird-module`. Child issues: #17 (anticipation row), #18 (registry), #19 (EBD ingestion), #20 (hooks + bird-row smoke).
 
-Status: **complete** (2026-10-11).
+Status: **complete** (2026-10-11); extension E-P4.5 (#33, 2026-10-12).
 
 Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 
@@ -71,6 +71,7 @@ Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 - [x] EBD-derived ingestion path — `wbi_birds.ingest` (streaming suite/month/complete filters; derived CSV + provenance sidecar; no observer IDs)
 - [x] Species/guild registry — `wbi_birds.registry` + taxonomy snapshot (9-species suite; validator checks codes/names; fixture carries the full suite)
 - [x] FreshForge `run_node` hooks for `ingest_ebd` / `fit_antifunction` — full five-node chain smoke with evidence green
+- [x] Ensemble response embedding — `wbi_birds.responses` + `bird/response_table.csv`; arbitrary (non-linear) fitted responses evaluated exactly on the **reachable** state space (`reachable_state_space` dry-materials transition DTs); instance validation accepts response table and/or coefficients; `fit_antifunction` mode `response` (#33)
 
 ## E-P5 — Verification & parity
 
