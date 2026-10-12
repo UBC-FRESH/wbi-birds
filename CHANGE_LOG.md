@@ -186,3 +186,11 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
   docs `-W` clean.
 - Enables the manuscript's maximum-bird endpoint ("maximizing bird abundance in the objective
   function") for the campaign partition; supersedes the bisection proxy.
+
+## 2026-10-12 — Campaign scripts committed
+
+- `scripts/campaign_birdmax.py` (maximum-bird endpoint), `campaign_partition.py` (11-scenario
+  nadir-to-max partition; `--max-series` or bisection fallback), `campaign_sensitivity.py`
+  (epsilon/utilization at matched targets), `frontier_analyze.py` (trade-off tables).
+- True max-bird endpoint exceeds the bisection proxy by 5-9% (TSA24 +9.2%, TSA16 +5.6%),
+  confirming the direct bird-objective solve supersedes the proxy for the campaign partition.
