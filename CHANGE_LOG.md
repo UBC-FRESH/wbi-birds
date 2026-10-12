@@ -252,3 +252,20 @@ Cross-links: manuscript `planning/bird-model-v2-spec.md` §5/§9/§11; review it
 - Docs: `docs/concepts.rst`, `planning/data-contract.md`.
 
 Issue #35.
+
+## 2026-10-12 — E-P4.7: private eBird lane + legacy RBNU benchmark (#37)
+
+- Private store `UBC-FRESH/wbi-ebird-data` now holds the liberated `EBD_relAug-2019`
+  RBNU/BC archive (`raw/ebd/`) and the reconstructed legacy design matrix
+  (`derived/rbnu-legacy/`); content copied to the new Arbutus `arbutus-s3` remote
+  (bucket `ubc-fresh-wbi-ebird-data`, endpoint `object-arbutus.alliancecan.ca`)
+  configured **private (`public=no`)** per the eBird Terms of Use (anonymous access 403).
+- Updated the `external/wbi-ebird-data` submodule to the new store commit.
+- `wbi_birds.ingest` accepts the as-received `.zip` (largest `ebd_*.txt` member);
+  `IngestSummary.source_member` records the member; tests cover the zip path.
+- Legacy benchmark: `scripts/benchmark_legacy_rbnu.py`, public reference
+  `tests/fixtures/legacy_rbnu_reference.json`, gated test
+  `tests/test_legacy_benchmark.py` (skips when the private submodule is absent).
+  Reproduces the 2019 RBNU fit: n 63,138 vs 63,135; coefficients within ~3e-4
+  relative; null/residual deviance exact to the integer.
+- Docs: `external/README.md` (ToU + CI policy), `planning/data-contract.md`.

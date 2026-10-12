@@ -73,6 +73,7 @@ Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 - [x] FreshForge `run_node` hooks for `ingest_ebd` / `fit_antifunction` — full five-node chain smoke with evidence green
 - [x] Ensemble response embedding — `wbi_birds.responses` + `bird/response_table.csv`; arbitrary (non-linear) fitted responses evaluated exactly on the **reachable** state space (`reachable_state_space` dry-materials transition DTs); instance validation accepts response table and/or coefficients; `fit_antifunction` mode `response` (#33)
 - [x] Native Python regression — `wbi_birds.regression` + `wbi_birds.covariates`; ports `fitBirdBiomassModel` (kNN age projection, species-biomass scaling/wood-type aggregation, Poisson GLM with SEs/z/p/deviance/AIC, stepwise AIC); `fit poisson` / `fit stage-response` CLI; `rasterio` optional `[covariates]` extra; R/SpaDES no longer required (#35)
+- [x] Private eBird data lane — `external/wbi-ebird-data` submodule (CI never initialises it); `wbi_birds.ingest` accepts the as-received `.zip`; legacy RBNU benchmark (`scripts/benchmark_legacy_rbnu.py`, gated test) reproduces the 2019 R fit from the reconstructed design matrix (#37)
 
 ## E-P5 — Verification & parity
 

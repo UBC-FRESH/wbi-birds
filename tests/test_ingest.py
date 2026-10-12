@@ -90,3 +90,27 @@ def test_ingest_rejects_missing_columns(tmp_path: Path) -> None:
     bad.write_text("COMMON NAME\tOBSERVATION COUNT\nrebnut\t1\n", encoding="utf-8")
     with pytest.raises(ValueError, match="missing required column"):
         ingest_ebd(_spec(tmp_path, ebd_path=bad))
+
+
+def test_ingest_from_zip_archive(tmp_path: Path) -> None:
+    import zipfile
+
+    archive = tmp_path / "ebd_sample.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.write(FIXTURE, arcname="ebd_sample/ebd_sample.txt")
+    summary = ingest_ebd(_spec(tmp_path, ebd_path=archive))
+    assert summary.rows_kept == 12
+    assert summary.source == "ebd_sample.zip"
+    assert summary.source_member == "ebd_sample/ebd_sample.txt"
+    sidecar = tmp_path / "derived" / "suite_ebd.csv.provenance.json"
+    assert json.loads(sidecar.read_text())["source_member"] == "ebd_sample/ebd_sample.txt"
+
+
+def test_ingest_zip_without_ebd_member_rejected(tmp_path: Path) -> None:
+    import zipfile
+
+    archive = tmp_path / "empty.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("notes.txt", "not an ebd member")
+    with pytest.raises(ValueError, match=r"No EBD .txt member"):
+        ingest_ebd(_spec(tmp_path, ebd_path=archive))

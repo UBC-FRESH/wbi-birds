@@ -1,0 +1,31 @@
+{
+  "description": "Legacy RBNU/BC Poisson regression reference for the native Python bird model (wbi_birds.regression).",
+  "source_2019": "fitBirdBiomassModel/README.md glm summary, dated 2021-12-13 (upstream repo tati-micheletti/fitBirdBiomassModel@RIA)",
+  "source_2019_note": "Coefficients are as printed (4 significant figures); n=63135. The 2019 design matrix was not published.",
+  "r_2019_reference": {
+    "n": 63135,
+    "coefficients": {
+      "intercept": 7.594e-1,
+      "softwood": 2.181e-3,
+      "hardwood": -1.176e-2,
+      "age": -8.235e-4
+    },
+    "null_deviance": 184252,
+    "residual_deviance": 169747,
+    "aic": 319047,
+    "dispersion": 2.689
+  },
+  "reconstructed_reference": {
+    "description": "Native Python fit on the reconstructed design matrix (EBD_relAug-2019 + NFI 2011 kNN v1); see UBC-FRESH/wbi-ebird-data derived/rbnu-legacy/PROVENANCE.md.",
+    "n": 63138,
+    "coefficients": {
+      "intercept": 0.7594441584,
+      "softwood": 0.0021811167,
+      "hardwood": -0.0117631468,
+      "age": -0.0008234615
+    },
+    "null_deviance": 184251.7687374537,
+    "residual_deviance": 169747.4595620446,
+    "aic": 319052.43127483444
+  }
+}
