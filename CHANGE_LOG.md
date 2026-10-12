@@ -295,3 +295,27 @@ Issue #35.
   provenance, missing-join-column); existing zip-ingest tests updated.
 - Docs: `planning/data-contract.md`, `docs/concepts.rst`.
 - Full suite green; ruff + sphinx clean.
+
+## 2026-10-12 — E-P4.9: ensemble fitting + response-draw uncertainty (#41)
+
+- `wbi_birds.ensemble` (numpy/scipy only): members over the shared state vector —
+  Poisson (log-link), NB2 negative-binomial (dispersion by MLE with analytic gradient),
+  standardized quadratic + interaction Poisson, and a log-Gaussian contrast (OLS on
+  log(y+0.5) with smearing). Out-of-fold **optimal linear pool** weights on the
+  simplex (minimise out-of-fold Poisson deviance); deterministic k-fold; ensemble
+  mean and between-member spread; scalar predictor for state-space evaluation;
+  coefficient draws `N(beta, cov)` (eigen-factored, reproducible under a seed).
+- Validation on synthetic data: NB recovers the dispersion (theta est. 1.7 vs true
+  1.5) and the pool moves to NB under overdispersion; Poisson data put ~all weight
+  on Poisson. The ensemble evaluated on the real ws3 fixture state space reproduces
+  the response table exactly.
+- `wbi_birds.fit.stage_ensemble_response`: writes the point-estimate
+  `bird/response_table.csv`, per-draw tables under `bird/draws/`, and
+  `bird/fit_report.json` (members, coefficients/SEs, out-of-fold weights, CV deviance,
+  policies).
+- Tests: `tests/test_ensemble.py` (11 cases incl. state-space reproduction and staging).
+- Limitation recorded: ensemble weights are held fixed across coefficient draws
+  (weight uncertainty is a sensitivity analysis, not yet a draw dimension). The
+  FreshForge `fit_antifunction` **ensemble mode** is deferred: it needs the instance
+  state space, so the pipeline must compile the instance before fitting (topology
+  change tracked for the workflow blueprint).

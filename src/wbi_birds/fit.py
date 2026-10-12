@@ -24,7 +24,8 @@ import numpy as np
 import yaml
 
 from wbi_birds import regression
-from wbi_birds.bird import AnticipationCoefficients
+from wbi_birds.bird import AnticipationCoefficients, build_response_table
+from wbi_birds.ensemble import EnsembleFit
 from wbi_birds.responses import ResponseTable, merge_response_table, read_response_tables
 from wbi_birds.taxonomy import TAXONOMY_SNAPSHOT
 
@@ -274,4 +275,67 @@ def make_covariates_csv(
         writer.writerow(("observation_count", *FEATURES))
         for (swvol, hwvol, age), count in zip(design, counts, strict=True):
             writer.writerow((count, swvol, hwvol, age))
+    return path
+
+
+def stage_ensemble_response(
+    model: Any,
+    species_code: str,
+    ensemble: EnsembleFit,
+    instance_root: Path | str,
+    *,
+    states: Sequence[tuple[tuple[str, ...], int]] | None = None,
+    draws: int = 0,
+    draw_seed: int = 0,
+) -> Path:
+    """Evaluate an ensemble on the planning state space and stage it into an instance.
+
+    Writes the point-estimate response (weighted mean) into
+    ``bird/response_table.csv`` (merging other species) and, when ``draws > 0``,
+    a per-draw ``bird/draws/<species>_draw<k>.csv`` table set for uncertainty runs.
+    A ``fit_report.json`` records members, out-of-fold weights and CV deviance.
+    """
+    import json
+
+    if species_code not in TAXONOMY_SNAPSHOT:
+        raise FitError(f"Unknown species code '{species_code}'")
+    root = Path(instance_root)
+    table = build_response_table(
+        model,
+        species_code,
+        ensemble.predictor(),
+        states=states,
+        source={"fit": "ensemble", "seed": ensemble.seed, "folds": ensemble.folds},
+    )
+    if not table.values:
+        raise FitError(f"Response table for '{species_code}' has no states")
+    path = merge_response_table(root, table)
+
+    report = ensemble.report()
+    report["species_code"] = species_code
+    report["states"] = len(table.values)
+    report["draws"] = int(draws)
+    if draws > 0:
+        draw_dir = root / "bird" / "draws"
+        draw_dir.mkdir(parents=True, exist_ok=True)
+        for index, predictor in enumerate(ensemble.draw_predictors(draws, draw_seed)):
+            draw_table = build_response_table(
+                model,
+                species_code,
+                predictor,
+                states=states,
+                source={"fit": "ensemble_draw", "draw": index, "seed": draw_seed},
+            )
+            # Each draw is a standalone response_table.csv so it stages like the point fit.
+            from wbi_birds.responses import write_response_tables
+
+            write_response_tables(
+                draw_dir / f"{species_code}_draw{index:03d}.csv",
+                [draw_table],
+            )
+    report_path = root / "bird" / "fit_report.json"
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        json.dumps(report, indent=2, sort_keys=True, default=float) + "\n", encoding="utf-8"
+    )
     return path
