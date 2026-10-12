@@ -46,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     tag = f"eps{args.eps:g}" if args.eps is not None else f"util{args.util:g}"
     print(f"tag={tag} eps={args.eps} util={args.util} factors={args.factors}", flush=True)
     for factor in (float(f) for f in args.factors.split(",")):
-        scenario_id = f"{args.unit.lower()}-{tag}-f{int(round(factor * 100)):03d}"
+        scenario_id = f"{args.unit.lower()}-{tag}-f{round(factor * 100):03d}"
         floors = None
         if factor != 1.0:
             floors = {p: factor * v for p, v in enumerate(baseline_series, start=1) if p >= 2}
