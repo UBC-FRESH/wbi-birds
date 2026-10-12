@@ -29,7 +29,13 @@ from wbi_birds.fit import (
     stage_response_table_from_csv,
     update_instance_coefficients,
 )
-from wbi_birds.ingest import IngestSpec, ingest_ebd
+from wbi_birds.ingest import (
+    STRUCTURED_PROTOCOLS,
+    IngestSpec,
+    ZeroFillSpec,
+    ingest_ebd,
+    ingest_ebd_zero_filled,
+)
 from wbi_birds.mapping import load_ws3_sections, locate_ws3_bundle, stage_ws3_sections
 from wbi_birds.model import build_model
 from wbi_birds.parity import compare_instance_results, write_report
@@ -316,6 +322,35 @@ class WbiProvider:
         species = tuple(str(code) for code in params.get("species") or registry.codes())
         months = tuple(int(month) for month in params.get("months", (5, 6, 7, 8)))
         out_path = instance / "bird" / "derived" / str(params.get("out", "ebd_suite.csv"))
+        if params.get("sed"):
+            sed_path = Path(context.resolve_path(str(params["sed"])))
+            zero = ingest_ebd_zero_filled(
+                ZeroFillSpec(
+                    ebd_path=ebd_path,
+                    sed_path=sed_path,
+                    out_csv=out_path,
+                    species=species,
+                    months=months,
+                    complete_checklists_only=bool(params.get("complete_checklists_only", True)),
+                    protocols=tuple(params.get("protocols") or STRUCTURED_PROTOCOLS),
+                )
+            )
+            sidecar = out_path.with_name(out_path.name + ".provenance.json")
+            return ProviderRunResult(
+                status=RunStatus.SUCCESS,
+                outputs={
+                    "derived_tables": {
+                        "rows": zero.rows,
+                        "checklists": zero.checklists,
+                        "per_species_detections": zero.per_species_detections,
+                    }
+                },
+                artifacts={
+                    "derived_table": self._relative_to_workdir(out_path, context),
+                    "provenance": self._relative_to_workdir(sidecar, context),
+                },
+                data={"filters": zero.filters, "unspecified_counts": zero.unspecified_counts},
+            )
         summary = ingest_ebd(
             IngestSpec(
                 ebd_path=ebd_path,

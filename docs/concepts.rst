@@ -24,6 +24,10 @@ An *instance* is a self-contained directory (the engine's unit of computation):
 - ``bird/`` — coefficients and derived (ingested) bird tables
 - ``results/`` — scenario tables, parity reports, curated release outputs
 
+The v2 ingestion path (``wbi_birds.ingest.ingest_ebd_zero_filled``) joins the
+EBD to the eBird Sampling Event Data and zero-fills a complete checklist x
+species grid with effort fields; ``X`` counts are censored (empty), not zero.
+
 The normative layout lives in ``planning/data-contract.md`` in the repository.
 
 Bird anticipation row

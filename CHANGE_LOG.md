@@ -279,3 +279,19 @@ Issue #35.
   outside the 41-TSA study area; masking reproduces n = 63,135 exactly. See the
   store's `derived/rbnu-legacy/PROVENANCE.md`.
 - Submodule pointer bumped; benchmark unchanged (full-design reference still passes).
+
+## 2026-10-12 — E-P4.8: SED ingest + zero-fill (#39)
+
+- `wbi_birds.ingest`: `ZeroFillSpec` / `ZeroFillSummary`, SED column aliases,
+  generic `.zip`-member reader, `read_sed_events` and `ingest_ebd_zero_filled`.
+  Zero-fill emits a complete checklist x species grid (`detection`, effort fields);
+  `X` is a detection with an empty count (censored), not zero; observer IDs are
+  never written; provenance records SED source, filters, per-species detections /
+  non-detections and the unspecified-count total.
+- FreshForge `ingest_ebd` node accepts an optional `sed` parameter and reports the
+  zero-fill summary.
+- Fixtures/tests: `tests/fixtures/ebd/sample_sed.txt` + 6 zero-fill cases
+  (grid/counts, X handling, event filtering + observer exclusion, effort carry-through,
+  provenance, missing-join-column); existing zip-ingest tests updated.
+- Docs: `planning/data-contract.md`, `docs/concepts.rst`.
+- Full suite green; ruff + sphinx clean.
