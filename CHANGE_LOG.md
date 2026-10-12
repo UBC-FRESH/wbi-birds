@@ -229,3 +229,26 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 
 Cross-links: manuscript `planning/bird-model-v2-spec.md` §5/§9/§11; review item M1;
 `UBC-FRESH/wbi-birds-manuscript#3`. Issue #33.
+
+## 2026-10-12 — E-P4.6: native Python bird regression (#35)
+
+- Added `wbi_birds.regression`: native port of the R/SpaDES `fitBirdBiomassModel`
+  logic — `correct_stand_age` (kNN base-year projection, negatives dropped),
+  `scale_species_biomass` / `aggregate_wood_types`, `design_matrix`, Poisson MLE
+  with full R-`summary()` statistics (`PoissonFitResult`: coefficients, SEs from
+  the analytic Fisher information, z, p, null/residual deviance, log-likelihood,
+  AIC, dispersion), `stepwise_aic` (backward/forward/both), and
+  `linear_predictor` / `expected_count`.
+- Added `wbi_birds.covariates`: optional raster-covariate preparation (lazy
+  `rasterio`, `[covariates]` extra) + `build_covariate_rows` (FRI-age override,
+  wood-type aggregation, negative-age drop).
+- `wbi_birds.fit`: `fit_covariates` (full statistics, optional stepwise);
+  `fit_poisson_glm` now delegates to the native module and returns the richer
+  `FitResult`; existing staging paths unchanged.
+- CLI: `wbi-birds fit poisson` (JSON statistics, `--stepwise`) and
+  `wbi-birds fit stage-response`.
+- Tests: `tests/test_regression.py`, `tests/test_covariates.py`, `tests/test_cli.py`;
+  full suite green. No R/SpaDES/subprocess in the fit path.
+- Docs: `docs/concepts.rst`, `planning/data-contract.md`.
+
+Issue #35.
