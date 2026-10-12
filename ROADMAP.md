@@ -72,6 +72,7 @@ Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 - [x] Species/guild registry — `wbi_birds.registry` + taxonomy snapshot (9-species suite; validator checks codes/names; fixture carries the full suite)
 - [x] FreshForge `run_node` hooks for `ingest_ebd` / `fit_antifunction` — full five-node chain smoke with evidence green
 - [x] Ensemble response embedding — `wbi_birds.responses` + `bird/response_table.csv`; arbitrary (non-linear) fitted responses evaluated exactly on the **reachable** state space (`reachable_state_space` dry-materials transition DTs); instance validation accepts response table and/or coefficients; `fit_antifunction` mode `response` (#33)
+- [x] Native Python regression — `wbi_birds.regression` + `wbi_birds.covariates`; ports `fitBirdBiomassModel` (kNN age projection, species-biomass scaling/wood-type aggregation, Poisson GLM with SEs/z/p/deviance/AIC, stepwise AIC); `fit poisson` / `fit stage-response` CLI; `rasterio` optional `[covariates]` extra; R/SpaDES no longer required (#35)
 
 ## E-P5 — Verification & parity
 

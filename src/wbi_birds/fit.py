@@ -1,13 +1,15 @@
-"""Anticipation-function fitting support (E-P4.4).
+"""Anticipation-function fitting support (E-P4.4/E-P4.6).
 
-Two paths:
+Three paths:
 
-- ``provided``: stage R-fitted coefficients (the `fitBirdBiomassModel` lineage —
-  the manuscript's primary path) into an instance, validated against the
-  taxonomy snapshot.
+- ``provided``: stage externally fitted coefficients (historical
+  `fitBirdBiomassModel` lineage) into an instance, validated against the
+  taxonomy snapshot. Reference/parity only.
 - ``poisson``: engine-native Poisson MLE fit of ``count ~ swvol + hwvol + age``
-  (scipy) from a covariates table — for verification/regeneration once the
-  eBird extract and KNN covariates land.
+  from a covariates table, delegated to :mod:`wbi_birds.regression` (the native
+  port of the R/SpaDES logic).
+- ``response``: stage a precomputed ``response_table.csv`` (any fitted model;
+  see :mod:`wbi_birds.responses`).
 """
 
 from __future__ import annotations
@@ -20,8 +22,8 @@ from typing import Any
 
 import numpy as np
 import yaml
-from scipy.optimize import minimize
 
+from wbi_birds import regression
 from wbi_birds.bird import AnticipationCoefficients
 from wbi_birds.responses import ResponseTable, merge_response_table, read_response_tables
 from wbi_birds.taxonomy import TAXONOMY_SNAPSHOT
@@ -42,6 +44,12 @@ class FitResult:
     n_observations: int
     converged: bool
     negative_loglik: float
+    std_errors: Mapping[str, float] | None = None
+    z_values: Mapping[str, float] | None = None
+    p_values: Mapping[str, float] | None = None
+    null_deviance: float | None = None
+    residual_deviance: float | None = None
+    aic: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -66,44 +74,49 @@ def _read_covariates(path: Path) -> tuple[np.ndarray, np.ndarray]:
     return np.asarray(design), np.asarray(response)
 
 
-def fit_poisson_glm(covariates_csv: Path | str) -> FitResult:
-    """Poisson MLE fit of ``count ~ intercept + swvol + hwvol + age``."""
+def fit_covariates(
+    covariates_csv: Path | str,
+    *,
+    stepwise: bool = False,
+    direction: str = "both",
+) -> regression.PoissonFitResult:
+    """Fit the native Poisson GLM from a covariates table (optionally stepwise)."""
     design, response = _read_covariates(Path(covariates_csv))
-    features = design[:, 1:]
-    mean = features.mean(axis=0)
-    scale = features.std(axis=0)
-    scale[scale == 0.0] = 1.0
-    standardized = np.column_stack([np.ones(design.shape[0]), (features - mean) / scale])
+    try:
+        if stepwise:
+            _selected, result = regression.stepwise_aic(
+                design[:, 1:], response, FEATURES, direction=direction
+            )
+            return result
+        return regression.fit_poisson_glm(design[:, 1:], response, FEATURES)
+    except regression.RegressionError as exc:
+        raise FitError(str(exc)) from exc
 
-    def negative_loglik(beta: np.ndarray) -> float:
-        eta = np.clip(standardized @ beta, -30.0, 30.0)
-        return float(np.sum(np.exp(eta) - response * eta))
 
-    result = minimize(
-        negative_loglik,
-        np.zeros(standardized.shape[1]),
-        method="L-BFGS-B",
-        options={"maxiter": 2000, "ftol": 1e-12, "gtol": 1e-9},
-    )
-    beta = result.x
-    gradient = getattr(result, "jac", None)
-    gradient_norm = (
-        float(np.linalg.norm(gradient)) / max(1, design.shape[0])
-        if gradient is not None
-        else float("inf")
-    )
-    slopes = beta[1:] / scale
-    intercept = float(beta[0] - np.sum(beta[1:] * mean / scale))
+def fit_poisson_glm(covariates_csv: Path | str) -> FitResult:
+    """Poisson MLE fit of ``count ~ intercept + swvol + hwvol + age``.
+
+    Delegates to :mod:`wbi_birds.regression` (native port of the R lineage) and
+    reports the full fit statistics in addition to the coefficients. Use
+    :func:`fit_covariates` directly when stepwise selection is wanted.
+    """
+    result = fit_covariates(covariates_csv)
     return FitResult(
         coefficients=AnticipationCoefficients(
-            intercept=intercept,
-            swvol=float(slopes[0]),
-            hwvol=float(slopes[1]),
-            age=float(slopes[2]),
+            intercept=float(result.coefficients[regression.INTERCEPT]),
+            swvol=float(result.coefficients["swvol"]),
+            hwvol=float(result.coefficients["hwvol"]),
+            age=float(result.coefficients["age"]),
         ),
-        n_observations=int(design.shape[0]),
-        converged=bool(result.success) or gradient_norm < 1e-3,
-        negative_loglik=float(result.fun),
+        n_observations=int(result.n),
+        converged=bool(result.converged),
+        negative_loglik=float(-result.log_likelihood),
+        std_errors=dict(result.std_errors),
+        z_values=dict(result.z_values),
+        p_values=dict(result.p_values),
+        null_deviance=float(result.null_deviance),
+        residual_deviance=float(result.residual_deviance),
+        aic=float(result.aic),
     )
 
 

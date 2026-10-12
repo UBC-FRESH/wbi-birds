@@ -43,6 +43,17 @@ Resolution order is response table first, else coefficients. Because the row is
 part of the LP, bird series are read exactly from the LP solution — not
 reconstructed from schedules afterwards.
 
+Bird regression (native)
+------------------------
+
+The response functions are fitted **inside the engine** — ``wbi_birds.regression``
+is a native Python port of the original R/SpaDES ``fitBirdBiomassModel`` logic:
+kNN stand-age projection to the observation year, species-biomass scaling and
+wood-type aggregation, Poisson GLM with full fit statistics (coefficients, SEs,
+z, p, deviance, AIC), and stepwise-AIC selection. Optional raster covariate
+sampling lives in ``wbi_birds.covariates`` (``pip install wbi-birds[covariates]``).
+No R, SpaDES, or subprocess is required.
+
 Scenario semantics
 ------------------
 
