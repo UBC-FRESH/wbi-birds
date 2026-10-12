@@ -334,3 +334,8 @@ Issue #35.
 - Tests: `tests/test_indicators.py` (10 cases) — hand-computed weighted sums, SD
   propagation, registry-driven guilds, mean/balanced/custom schemes, invalid weights,
   state-space mismatch, Shannon/richness hand values.
+
+## 2026-10-12 — Governance: decision authority (GP sole driver)
+
+- Added the decision-authority guardrail to `AGENTS.md`: GP is the sole decision-maker and project driver; TM and EM are nominal co-authors with end-stage, non-blocking review only. No engine task, issue, or PR waits on their input. Policy text: manuscript repo `AGENTS.md` → Decision authority.
+

@@ -44,3 +44,4 @@ Phase E-P1 (scaffold). Layout: `src/wbi_birds/`, `tests/`, `docs/`, `examples/`,
 - Scientific scope is frozen by the manuscript roadmap; engine changes that could alter results require an
   issue cross-linked to `UBC-FRESH/wbi-birds-manuscript#3`.
 - Record release/version identifiers for every result-affecting run.
+- **Decision authority:** GP is the sole decision-maker and project driver. TM and EM are nominal co-authors with end-stage, non-blocking review only. No engine task, issue, or PR waits on their input (manuscript repo `AGENTS.md` → Decision authority).
