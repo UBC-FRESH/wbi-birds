@@ -269,3 +269,13 @@ Issue #35.
   Reproduces the 2019 RBNU fit: n 63,138 vs 63,135; coefficients within ~3e-4
   relative; null/residual deviance exact to the integer.
 - Docs: `external/README.md` (ToU + CI policy), `planning/data-contract.md`.
+
+## 2026-10-12 — Submodule bump: rbnu-legacy TSA study area + exact-n design
+
+- Private store `wbi-ebird-data` advanced to `6e00677`: added the recovered
+  `BC_TSA_corrected` study area (stored as `derived/rbnu-legacy/study_area/bc_tsa_study_area.geojson.gz`,
+  Arbutus-backed) and `rbnu_legacy_design_tsa.csv` (63,135 rows).
+- The 3-row delta vs the 2019 RBNU fit is resolved: exactly 3 retained points lie
+  outside the 41-TSA study area; masking reproduces n = 63,135 exactly. See the
+  store's `derived/rbnu-legacy/PROVENANCE.md`.
+- Submodule pointer bumped; benchmark unchanged (full-design reference still passes).
