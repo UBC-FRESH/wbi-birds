@@ -142,3 +142,19 @@ Newest entries last. Every deliverable appends a dated entry (see `AGENTS.md`).
 - README rewritten into public lane (fixture bootstrap, acceptance-tested) + campaign lane; `results/REPRODUCIBILITY.md` finalized with the acceptance record.
 - Self-bootstrapping acceptance on a fresh clone: clean install -> 79 tests passed -> example notebook 5/5 cells, parity 32/32 (ws3 1.1.0a5, FreshForge 0.1.0a5, HiGHS 1.15.1).
 - Zenodo DOI deposit pending enabling the Zenodo-GitHub integration (#29).
+
+## 2026-10-12 — Five-TSA campaign models live (THLB-filtered, 200y/10y, ε=0.1)
+
+- femic P113.5 landed: `femic export woodstock --thlb-min 50` (THLB-filtered landbase; stands with
+  `thlb_raw >= 50`, at full stand area), 200-year horizon × 10-year periods, cc operability 80..400,
+  regeneration to age 0 (multi-rotation). Five AOI instances re-exported (woodstock + ws3 sections)
+  and re-published to the new Arbutus cloud (`object-arbutus.alliancecan.ca`); fresh-clone
+  end-to-end downloads verified.
+- Five-TSA baselines (maximize `totvol * 0.85`, even-flow ε = 0.1): TSA24 1,443,341,327 m³ /
+  50,616,966 birds; TSA16 482,512,616 / 23,038,597; TSA08 596,831,254 / 6,745,036;
+  TSA40 434,793,181 / 8,598,516; TSA41 291,035,361 / 5,066,902. Evidence:
+  `femic/external/femic-tsa24-instance/evidence/p113_5_campaign_config_2026-10-12.md`.
+- ws3 time-unit contract fixes (femic bridge): `.yld` ages in periods with midpoint collapse; `.trn`
+  target proportion in percent (post-treatment age from the action `Y` flag).
+- `planning/femic-map.md` updated with the campaign configuration + baselines; bird-floor frontier
+  sweep (factors 1.00–1.15 of the ε=0.1 baseline series, periods 2..20) running.

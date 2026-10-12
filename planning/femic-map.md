@@ -64,12 +64,26 @@ stays green; missing/empty sections are rejected.
 ## Verified end-to-end (2026-10-12)
 
 The P113.4 smoke executed the full chain on fresh public data and solved a
-genuine ε-scenario in this engine: fresh VRI 2025 clip -> VDYP (Wine) ->
-TIPSY/BTC (Wine) -> model-input bundle -> Woodstock export (species splits;
-cc 80..400; initial-age cap 300 + 10-year snapping) -> `tsa24.{lan,are,yld,act,trn}`
--> `build_model` (54 development types, 132 curves, 16 x 5-year periods) ->
-**optimal, harvest 41,899,620.69 m3, birds 59,432,387.76**.
-Evidence: `femic/external/femic-tsa24-instance/evidence/p113_4_smoke_2026-10-12.md`.
+genuine scenario in this engine (evidence:
+`femic/external/femic-tsa24-instance/evidence/p113_4_smoke_2026-10-12.md`).
+
+The **campaign configuration** (P113.5) then locked: THLB-filtered landbase
+(`femic export woodstock --thlb-min 50`; stands with `thlb_raw >= 50`, at full
+stand area), 200-year horizon x 10-year periods (20 periods, ~2 rotations),
+initial ages capped at 300 + snapped to 10-year midpoints, cc operability
+80..400, regeneration to age 0, and even-flow epsilon = 0.1 (symmetric band
+anchored to the final period). Five-TSA baselines (maximize `totvol * 0.85`,
+no bird floors):
+
+| TSA | dtypes / curves | Harvest (m3) | Birds |
+|---|---|---|---|
+| 24 | 27 / 132 | 1,443,341,327 | 50,616,966 |
+| 16 | 49 / 246 | 482,512,616 | 23,038,597 |
+| 08 | 32 / 118 | 596,831,254 | 6,745,036 |
+| 40 | 30 / 162 | 434,793,181 | 8,598,516 |
+| 41 | 38 / 217 | 291,035,361 | 5,066,902 |
+
+Evidence: `femic/external/femic-tsa24-instance/evidence/p113_5_campaign_config_2026-10-12.md`.
 
 Note the ws3 Woodstock **time-unit contract**: `.are` stand ages, `.act`
 action-timing bounds, and `.yld` curve ages are in periods (ws3 multiplies them
