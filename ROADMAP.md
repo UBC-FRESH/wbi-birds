@@ -78,6 +78,7 @@ Goal: species-generic anticipation curves; legacy RBNU parity anchor.
 - [x] Biodiversity indicators — `wbi_birds.indicators`: guild rows (`mature_conifer`, `mixedwood`, `early_seral`, `cavity`) and a weighted composite community index (equal / guild-balanced / custom) built as LP-linear `ResponseTable`s (weighted sums; SD by independent-error sum); non-separable richness/Shannon/effective-species as post-solve diagnostics only (#42)
 - [x] Bird-path review fixes (#47): non-finite response values rejected; explicit harvest codes required for response tables; sidecar checksum verified; engine version recorded in response-table sources and ensemble fit reports
 - [x] SED ingest + zero-fill — `ingest_ebd_zero_filled` (`ZeroFillSpec`/`ZeroFillSummary`): joins EBD detections to filtered SED events, emits the complete checklist x species grid with effort fields; `X` is a censored detection; FreshForge `ingest_ebd` accepts a `sed` parameter (#39)
+- [x] Fixture data policy (#45, 2026-10-13): fixture identifiers replaced with placeholders; tracked-file scanner `tests/test_data_policy.py`; provenance reviewed and history left unchanged (see CHANGE_LOG 2026-10-13)
 
 ## E-P5 — Verification & parity
 
