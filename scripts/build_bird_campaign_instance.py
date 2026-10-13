@@ -68,8 +68,8 @@ def _git_head(path: Path) -> str:
         return "unknown"
 
 
-def _species_config() -> dict:
-    entries = [{"code": code, "guild": guild} for code, guild in SUITE_GUILDS.items()]
+def _species_config(codes: list[str]) -> dict:
+    entries = [{"code": code, "guild": SUITE_GUILDS[code]} for code in codes]
     return {"species": entries, "guilds": list(GUILDS)}
 
 
@@ -97,6 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     staged = stage_ws3_sections(bundle, out)
 
     (out / "config").mkdir(parents=True, exist_ok=True)
+    (out / "results").mkdir(parents=True, exist_ok=True)
     (out / "config" / "run.yaml").write_text(
         yaml.safe_dump(
             {
@@ -113,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
         encoding="utf-8",
     )
     (out / "config" / "species.yaml").write_text(
-        yaml.safe_dump(_species_config(), sort_keys=False), encoding="utf-8"
+        yaml.safe_dump(_species_config([args.species]), sort_keys=False), encoding="utf-8"
     )
 
     model, stats = build_model(out)
