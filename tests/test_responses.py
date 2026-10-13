@@ -78,3 +78,21 @@ def test_merge_preserves_other_species(tmp_path: Path) -> None:
     write_response_tables(path, [_table("rebnut"), _table("borchi2")])
     merge_response_table(tmp_path, _table("gockin"))
     assert set(read_response_tables(path)) == {"rebnut", "borchi2", "gockin"}
+
+
+def test_read_rejects_non_finite_values(tmp_path: Path) -> None:
+    path = _path(tmp_path)
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        "species_code,development_type,age,bird_value\nrebnut,dt|0,80,nan\n", encoding="utf-8"
+    )
+    with pytest.raises(ResponseTableError, match="non-finite bird_value"):
+        read_response_tables(path)
+
+
+def test_read_rejects_stale_sidecar(tmp_path: Path) -> None:
+    path = _path(tmp_path)
+    write_response_tables(path, [_table()])
+    path.write_text(path.read_text(encoding="utf-8").replace("81.0", "99.0"), encoding="utf-8")
+    with pytest.raises(ResponseTableError, match="does not match its provenance sidecar"):
+        read_response_tables(path)

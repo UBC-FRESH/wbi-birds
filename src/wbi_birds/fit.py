@@ -23,7 +23,7 @@ from typing import Any
 import numpy as np
 import yaml
 
-from wbi_birds import regression
+from wbi_birds import __version__, regression
 from wbi_birds.bird import AnticipationCoefficients, build_response_table
 from wbi_birds.ensemble import EnsembleFit
 from wbi_birds.responses import ResponseTable, merge_response_table, read_response_tables
@@ -285,6 +285,7 @@ def stage_ensemble_response(
     instance_root: Path | str,
     *,
     states: Sequence[tuple[tuple[str, ...], int]] | None = None,
+    acodes: Sequence[str] | None = None,
     draws: int = 0,
     draw_seed: int = 0,
 ) -> Path:
@@ -305,6 +306,7 @@ def stage_ensemble_response(
         species_code,
         ensemble.predictor(),
         states=states,
+        acodes=acodes,
         source={"fit": "ensemble", "seed": ensemble.seed, "folds": ensemble.folds},
     )
     if not table.values:
@@ -315,6 +317,7 @@ def stage_ensemble_response(
     report["species_code"] = species_code
     report["states"] = len(table.values)
     report["draws"] = int(draws)
+    report["engine_version"] = __version__
     if draws > 0:
         draw_dir = root / "bird" / "draws"
         draw_dir.mkdir(parents=True, exist_ok=True)
@@ -324,6 +327,7 @@ def stage_ensemble_response(
                 species_code,
                 predictor,
                 states=states,
+                acodes=acodes,
                 source={"fit": "ensemble_draw", "draw": index, "seed": draw_seed},
             )
             # Each draw is a standalone response_table.csv so it stages like the point fit.
