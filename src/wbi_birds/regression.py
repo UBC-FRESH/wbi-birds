@@ -313,3 +313,31 @@ def linear_predictor(coefficients: Mapping[str, float], features: Mapping[str, f
 def expected_count(coefficients: Mapping[str, float], features: Mapping[str, float]) -> float:
     """Expected count ``exp(eta)`` for a fitted Poisson (log-link) model."""
     return float(math.exp(np.clip(linear_predictor(coefficients, features), -30.0, 30.0)))
+
+
+def quasi_poisson_summary(result: PoissonFitResult) -> dict[str, dict[str, float]]:
+    """Standard errors and tests rescaled by the dispersion (quasi-Poisson).
+
+    The Poisson covariance is multiplied by the dispersion, so each standard error is
+    scaled by its square root. Coefficients are unchanged; z and p values follow from the
+    scaled standard errors.
+    """
+    dispersion = result.dispersion
+    if not math.isfinite(dispersion) or dispersion <= 0.0:
+        raise ValueError(f"dispersion must be positive and finite, got {dispersion!r}")
+    scale = math.sqrt(dispersion)
+    names = tuple(result.coefficients)
+    std_errors = {name: float(result.std_errors[name]) * scale for name in names}
+    z_values = {
+        name: (
+            float(result.coefficients[name]) / std_errors[name]
+            if std_errors[name] > 0.0
+            else math.nan
+        )
+        for name in names
+    }
+    p_values = {
+        name: math.erfc(abs(z) / math.sqrt(2.0)) if math.isfinite(z) else math.nan
+        for name, z in z_values.items()
+    }
+    return {"std_errors": std_errors, "z_values": z_values, "p_values": p_values}
