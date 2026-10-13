@@ -45,3 +45,4 @@ Phase E-P1 (scaffold). Layout: `src/wbi_birds/`, `tests/`, `docs/`, `examples/`,
   issue cross-linked to `UBC-FRESH/wbi-birds-manuscript#3`.
 - Record release/version identifiers for every result-affecting run.
 - **Decision authority:** GP is the sole decision-maker and project driver. TM and EM are nominal co-authors with end-stage, non-blocking review only. No engine task, issue, or PR waits on their input (manuscript repo `AGENTS.md` → Decision authority).
+- **Data handling (eBird):** raw EBD/SED records never enter the repo, fixtures, docs, issues, or session output; never copy rows from `external/wbi-ebird-data` or any download into fixtures. Fixtures and examples are synthetic: observer IDs use the placeholder form `obsrSYN##`, checklist IDs use `S###`, and no EBD GUIDs appear. Inspect raw archives by counts and aggregates only. `tests/test_data_policy.py` scans tracked files and reports locations, never matched values.

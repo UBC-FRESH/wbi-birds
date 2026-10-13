@@ -339,3 +339,10 @@ Issue #35.
 
 - Added the decision-authority guardrail to `AGENTS.md`: GP is the sole decision-maker and project driver; TM and EM are nominal co-authors with end-stage, non-blocking review only. No engine task, issue, or PR waits on their input. Policy text: manuscript repo `AGENTS.md` → Decision authority.
 
+## 2026-10-13 — Data policy: fixture provenance review and tracked-file scanner (#45)
+
+- Reviewed the origin of the observer-style identifiers in `examples/data/ebd/sample_ebd.txt`, `tests/fixtures/ebd/sample_ebd.txt`, and `tests/fixtures/ebd/sample_sed.txt`. The fixtures are synthetic: the identifiers first appear in `1a5cbcc` (2026-10-11); checklist IDs are sequential placeholders; no real-format identifiers or EBD GUIDs appear in any commit; the identifiers do not occur in the 2019 raw archive or elsewhere in the workspace. Details in #45.
+- No history rewrite. A rewrite would change every commit from 2026-10-11 onward, including `b4f62a0` (pinned in the threshold-sensitivity evidence) and the `v1.0.0` tag, and forks and PR refs would keep the old objects anyway.
+- Replaced the 15 observer identifiers with placeholders `obsrSYN01`–`obsrSYN15` in all three fixtures, using one mapping across files.
+- Added `tests/test_data_policy.py`: fails on real-format observer identifiers, eBird GUIDs, or checklist identifiers in any tracked text file, and on tracked `.zip` archives. Failure messages report file and line only.
+- `AGENTS.md` (Guardrails): data-handling rule for eBird records. `.gitignore`: ignore `*.zip`.
