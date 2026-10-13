@@ -1,0 +1,198 @@
+{
+  "definition": "volume_allocated",
+  "denominator": "sum of the 21 classified treeSp species biomass",
+  "fit": {
+    "aic": 319610.8348689998,
+    "coefficients": {
+      "age": -0.0010195174276648,
+      "hardwood": -0.009193829179408544,
+      "intercept": 0.768599444975969,
+      "softwood": 0.0019232065204367321
+    },
+    "converged": true,
+    "dispersion": 2.713204756643485,
+    "null_deviance": 183839.97402046464,
+    "p_values": {
+      "age": 1.3387971458948876e-64,
+      "hardwood": 0.0,
+      "intercept": 0.0,
+      "softwood": 0.0
+    },
+    "residual_deviance": 170750.11494984443,
+    "std_errors": {
+      "age": 6.0072946576265284e-05,
+      "hardwood": 0.0002027244081835059,
+      "intercept": 0.005707352405484832,
+      "softwood": 2.0558239275181366e-05
+    },
+    "z_values": {
+      "age": -16.971323794987768,
+      "hardwood": -45.35136771042538,
+      "intercept": 134.66829982976626,
+      "softwood": 93.54918457236244
+    }
+  },
+  "invariant_max_abs_gap_softwood_plus_hardwood_minus_mvol": 5.684341886080802e-14,
+  "link": "log (Poisson GLM); bird value per state = exp(eta)",
+  "months": [
+    5,
+    6,
+    7,
+    8
+  ],
+  "parity_legacy_definition": {
+    "max_coefficient_gap_vs_2019_reconstruction": 1.6653345369377348e-15,
+    "n": 63135,
+    "passed": true,
+    "tolerance": 1e-09
+  },
+  "provenance": {
+    "ebd_zip_sha256": "4e40684997109c30112b1c72344cd74b80c91bd310133418e41ab6052b886f78",
+    "samples_npz_sha256": "f81a4fbbed12a37b6c875aba4eb2f9a85d6d517931160da6aa81a9380bcf2ea8",
+    "study_area_geojson_gz_sha256": "8257a5b4e3ae7ed2e377623d99acd033d945238cc9913854f6162993015694ab",
+    "wbi_birds_commit": "v1.0.0-43-gf115039",
+    "wbi_birds_version": "1.0.0"
+  },
+  "quasi_poisson": {
+    "basis": "dispersion = residual deviance / residual df; SE x sqrt(dispersion)",
+    "p_values": {
+      "age": 6.811687768811289e-25,
+      "hardwood": 7.127198760875873e-167,
+      "intercept": 0.0,
+      "softwood": 0.0
+    },
+    "std_errors": {
+      "age": 9.895100727710792e-05,
+      "hardwood": 0.00033392376323586353,
+      "intercept": 0.009401041593509582,
+      "softwood": 3.3863138068987766e-05
+    },
+    "z_values": {
+      "age": -10.303254668339925,
+      "hardwood": -27.532719116233068,
+      "intercept": 81.7568391045738,
+      "softwood": 56.79351147311495
+    }
+  },
+  "rows_dropped": {
+    "missing_biomass_or_volume": 1222,
+    "negative_projected_age": 1007,
+    "positive_volume_zero_biomass": 202,
+    "retained": 62937,
+    "study_area": 65368,
+    "zero_volume_kept_at_zero_wood_volume": 3543
+  },
+  "rows_fitted": 62937,
+  "rows_in_study_area": 65368,
+  "sensitivities": {
+    "no_age_term": {
+      "aic": 319903.9381738253,
+      "coefficients": {
+        "hardwood": -0.009348479314775303,
+        "intercept": 0.7029160862948416,
+        "softwood": 0.0017580938922282627
+      },
+      "converged": true,
+      "dispersion": 2.7178507365600466,
+      "n": 62937,
+      "null_deviance": 183839.97402046464,
+      "p_values": {
+        "hardwood": 0.0,
+        "intercept": 0.0,
+        "softwood": 0.0
+      },
+      "quasi_poisson": {
+        "p_values": {
+          "hardwood": 5.828283838340116e-172,
+          "intercept": 0.0,
+          "softwood": 0.0
+        },
+        "std_errors": {
+          "hardwood": 0.00033441887254229504,
+          "intercept": 0.007030943533084494,
+          "softwood": 3.0158304390542074e-05
+        },
+        "z_values": {
+          "hardwood": -27.95440114879572,
+          "intercept": 99.97464536405833,
+          "softwood": 58.29551520740063
+        }
+      },
+      "residual_deviance": 171045.21825466998,
+      "std_errors": {
+        "hardwood": 0.00020285138510627007,
+        "intercept": 0.004264821011588636,
+        "softwood": 1.829338688803888e-05
+      },
+      "z_values": {
+        "hardwood": -46.08536101381713,
+        "intercept": 164.81725361623253,
+        "softwood": 96.10543432926525
+      }
+    },
+    "no_zero_volume_rows": {
+      "aic": 307875.6877195084,
+      "coefficients": {
+        "age": -0.0014634706600733002,
+        "hardwood": -0.009758208597702276,
+        "intercept": 0.8341370153670122,
+        "softwood": 0.001872154579185177
+      },
+      "converged": true,
+      "dispersion": 2.8122658944412064,
+      "n": 59394,
+      "null_deviance": 179492.63367968128,
+      "p_values": {
+        "age": 6.581620215634845e-114,
+        "hardwood": 0.0,
+        "intercept": 0.0,
+        "softwood": 0.0
+      },
+      "quasi_poisson": {
+        "p_values": {
+          "age": 1.0963227137715189e-41,
+          "hardwood": 2.4095439326330628e-177,
+          "intercept": 0.0,
+          "softwood": 0.0
+        },
+        "std_errors": {
+          "age": 0.00010819574268048637,
+          "hardwood": 0.0003436735018799642,
+          "intercept": 0.010835841063513244,
+          "softwood": 3.4734453969754e-05
+        },
+        "z_values": {
+          "age": -13.526139049621259,
+          "hardwood": -28.393834684149006,
+          "intercept": 76.97944354091187,
+          "softwood": 53.89906462371363
+        }
+      },
+      "residual_deviance": 167020.47147086324,
+      "std_errors": {
+        "age": 6.451816135804454e-05,
+        "hardwood": 0.0002049358126248603,
+        "intercept": 0.006461516182299474,
+        "softwood": 2.0712488776218132e-05
+      },
+      "z_values": {
+        "age": -22.683080690284196,
+        "hardwood": -47.61592653190831,
+        "intercept": 129.09307844063406,
+        "softwood": 90.3877172565938
+      }
+    }
+  },
+  "state_vector": [
+    "softwood",
+    "hardwood",
+    "age"
+  ],
+  "study_area": "BC_TSA_corrected (41 TSAs), points inside the union",
+  "unit_contract": "planning/unit-contract-decision.md (GP working default, Option 1)",
+  "units": {
+    "age": "years",
+    "hardwood": "m3/ha",
+    "softwood": "m3/ha"
+  }
+}
