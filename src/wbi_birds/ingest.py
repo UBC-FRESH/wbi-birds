@@ -244,7 +244,7 @@ SED_COLUMN_ALIASES: dict[str, tuple[str, ...]] = {
     "observation_date": ("observation date", "date"),
     "latitude": ("latitude", "lat"),
     "longitude": ("longitude", "lon", "lng"),
-    "protocol_type": ("protocol type",),
+    "protocol_type": ("protocol type", "observation type"),
     "duration_minutes": ("duration minutes",),
     "effort_distance_km": ("effort distance km",),
     "effort_area_ha": ("effort area ha",),
@@ -345,6 +345,10 @@ def read_sed_events(
         except StopIteration as exc:
             raise ValueError(f"SED file is empty: {path}") from exc
         index = _resolve_columns(header, SED_COLUMN_ALIASES, SED_REQUIRED_COLUMNS)
+        if protocols is not None and "protocol_type" not in index:
+            raise ValueError(
+                f"SED file has no protocol column (PROTOCOL TYPE or OBSERVATION TYPE): {path}"
+            )
         width = len(header)
         for row in reader:
             if len(row) < width:
