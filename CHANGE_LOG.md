@@ -339,3 +339,9 @@ Issue #35.
 
 - Added the decision-authority guardrail to `AGENTS.md`: GP is the sole decision-maker and project driver; TM and EM are nominal co-authors with end-stage, non-blocking review only. No engine task, issue, or PR waits on their input. Policy text: manuscript repo `AGENTS.md` → Decision authority.
 
+## 2026-10-13 — SED header alias: OBSERVATION TYPE (#48)
+
+- `wbi_birds.ingest`: `protocol_type` accepts the 2025 eBird header `OBSERVATION TYPE` as well as `PROTOCOL TYPE`.
+- Missing protocol column: `read_sed_events` raises `ValueError` when the protocol filter is active. Previously a missing column dropped every checklist without an error, so an unaliased extract would have produced zero events silently.
+- Tests: `tests/test_ingest.py` reads the SED fixture under both headers and requires identical events; a missing protocol column raises.
+- Source: review thread on #40 (`ingest.py`, P1).
