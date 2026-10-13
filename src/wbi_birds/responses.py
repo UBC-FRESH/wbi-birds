@@ -15,6 +15,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import math
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -107,10 +108,16 @@ def read_response_tables(path: Path | str) -> dict[str, ResponseTable]:
     if provenance_file.is_file():
         try:
             loaded = json.loads(provenance_file.read_text(encoding="utf-8"))
-            if isinstance(loaded, dict):
-                provenance = loaded.get("species") or {}
         except (OSError, json.JSONDecodeError):
-            provenance = {}
+            loaded = None
+        if isinstance(loaded, dict):
+            recorded = loaded.get("sha256")
+            if recorded and recorded != hashlib.sha256(source_path.read_bytes()).hexdigest():
+                raise ResponseTableError(
+                    f"Response table {source_path} does not match its provenance sidecar "
+                    f"{provenance_file.name}; regenerate the table or its sidecar."
+                )
+            provenance = loaded.get("species") or {}
 
     grouped: dict[str, dict[str, Any]] = {}
     with source_path.open(newline="", encoding="utf-8") as handle:
@@ -140,6 +147,10 @@ def read_response_tables(path: Path | str) -> dict[str, ResponseTable]:
                 raise ResponseTableError(
                     f"Response table row has a non-numeric bird_value: {row.get('bird_value')!r}"
                 ) from exc
+            if not math.isfinite(value):
+                raise ResponseTableError(
+                    f"Response table row has a non-finite bird_value: {row.get('bird_value')!r}"
+                )
             raw_sd = (row.get("bird_value_sd") or "").strip()
             sd_value: float | None
             try:
@@ -148,6 +159,10 @@ def read_response_tables(path: Path | str) -> dict[str, ResponseTable]:
                 raise ResponseTableError(
                     f"Response table row has a non-numeric bird_value_sd: {raw_sd!r}"
                 ) from exc
+            if sd_value is not None and not math.isfinite(sd_value):
+                raise ResponseTableError(
+                    f"Response table row has a non-finite bird_value_sd: {raw_sd!r}"
+                )
 
             bucket = grouped.setdefault(code, {"values": {}, "sd": {}})
             bucket["values"][(dtype_key, age)] = value

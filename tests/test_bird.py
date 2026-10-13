@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from wbi_birds import __version__
 from wbi_birds.bird import (
     AnticipationCoefficients,
     bird_unit_value,
@@ -17,7 +18,7 @@ from wbi_birds.bird import (
 )
 from wbi_birds.mapping import load_ws3_sections, stage_ws3_sections
 from wbi_birds.model import build_model
-from wbi_birds.responses import ResponseTable, write_response_tables
+from wbi_birds.responses import ResponseTable, ResponseTableError, write_response_tables
 from wbi_birds.runner import ProblemSpec, run_scenario
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "femic_ws3_bundle"
@@ -138,7 +139,13 @@ def test_build_response_table_exact_nonlinear(fixture_model) -> None:
         return 1.5 + 0.01 * softwood + 0.02 * hardwood + math.exp(-age / 100.0)
 
     table = build_response_table(
-        model, "rebnut", predict, ages=ages, sd=lambda *_: 0.3, source={"fit": "test"}
+        model,
+        "rebnut",
+        predict,
+        ages=ages,
+        sd=lambda *_: 0.3,
+        source={"fit": "test"},
+        acodes=("null", "harvest"),
     )
     assert table.species_code == "rebnut"
     assert table.values  # reachable states were materialised and evaluated
@@ -174,7 +181,10 @@ def test_bird_row_response_table_scenario(fixture_model) -> None:
     """A response-table row solves end-to-end and records its provenance."""
     model = fixture_model
     table = build_response_table(
-        model, "rebnut", lambda sw, hw, age: 0.5 + 0.001 * sw - 0.002 * hw + 1e-4 * age
+        model,
+        "rebnut",
+        lambda sw, hw, age: 0.5 + 0.001 * sw - 0.002 * hw + 1e-4 * age,
+        acodes=("null", "harvest"),
     )
     spec = ProblemSpec(
         objective_expr="totvol * 0.85",
@@ -187,3 +197,22 @@ def test_bird_row_response_table_scenario(fixture_model) -> None:
     result = run_scenario(model, spec, scenario_id="tsa24-bird-rt", management_unit="TSA24")
     assert result.status == "optimal", result.diagnostics
     assert result.provenance["bird_response"]["species_code"] == "rebnut"
+
+
+def test_build_response_table_requires_states_or_acodes(fixture_model) -> None:
+    with pytest.raises(ValueError, match="needs states or acodes"):
+        build_response_table(fixture_model, "rebnut", lambda sw, hw, age: 1.0)
+
+
+def test_build_response_table_rejects_non_finite_predictions(fixture_model) -> None:
+    with pytest.raises(ResponseTableError, match="Non-finite predicted value"):
+        build_response_table(
+            fixture_model, "rebnut", lambda sw, hw, age: math.nan, acodes=("null", "harvest")
+        )
+
+
+def test_build_response_table_records_engine_version(fixture_model) -> None:
+    table = build_response_table(
+        fixture_model, "rebnut", lambda sw, hw, age: 1.0, acodes=("null", "harvest")
+    )
+    assert table.source["engine_version"] == __version__
