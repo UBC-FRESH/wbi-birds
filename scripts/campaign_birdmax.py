@@ -16,7 +16,7 @@ import argparse
 import json
 from pathlib import Path
 
-from wbi_birds.bird import load_coefficients
+from wbi_birds.bird import load_bird_response
 from wbi_birds.model import build_model
 from wbi_birds.results import write_scenario_result
 from wbi_birds.runner import ProblemSpec, run_scenario
@@ -41,7 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     scenario_id = args.scenario_id or f"{args.unit.lower()}-bmax"
     model, stats = build_model(args.instance)
     print("model stats:", stats)
-    coefficients = load_coefficients(args.instance, args.species)
+    coefficients = load_bird_response(args.instance, args.species)
     spec = ProblemSpec(
         objective_expr="bird",
         flow_expr=args.harvest_expr,

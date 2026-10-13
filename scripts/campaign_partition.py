@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from wbi_birds.bird import load_coefficients
+from wbi_birds.bird import load_bird_response
 from wbi_birds.model import build_model
 from wbi_birds.results import write_scenario_result
 from wbi_birds.runner import ProblemSpec, run_scenario
@@ -47,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     model, stats = build_model(args.instance)
     print("model stats:", stats, flush=True)
-    coefficients = load_coefficients(args.instance, args.species)
+    coefficients = load_bird_response(args.instance, args.species)
 
     def make_spec() -> ProblemSpec:
         return ProblemSpec(
