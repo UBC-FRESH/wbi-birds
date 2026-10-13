@@ -346,3 +346,10 @@ Issue #35.
 - Replaced the 15 observer identifiers with placeholders `obsrSYN01`–`obsrSYN15` in all three fixtures, using one mapping across files.
 - Added `tests/test_data_policy.py`: fails on real-format observer identifiers, eBird GUIDs, or checklist identifiers in any tracked text file, and on tracked `.zip` archives. Failure messages report file and line only.
 - `AGENTS.md` (Guardrails): data-handling rule for eBird records. `.gitignore`: ignore `*.zip`.
+## 2026-10-13 — Bird-path review fixes (#47)
+
+- `wbi_birds.responses`: rejects non-finite `bird_value` and `bird_value_sd` on read. Verifies the CSV against its provenance sidecar checksum and raises on a stale sidecar.
+- `wbi_birds.bird.build_response_table`: `acodes` no longer defaults to `("null", "harvest")`. Callers pass states or the configured harvest codes (`model.harvest_acodes`); the null action is always included. Non-finite predicted values are rejected. Table sources record `engine_version`.
+- `wbi_birds.fit.stage_ensemble_response`: accepts `acodes`; `fit_report.json` records `engine_version`.
+- Tests: `tests/test_bird.py` (requires states or acodes; non-finite predictions; engine version); `tests/test_responses.py` (non-finite values; stale sidecar).
+- Review threads addressed: #34 (`bird.py` harvest default; `responses.py` sidecar check), #36 (`responses.py` non-finite values), #43 (`fit.py` engine version). Still open: campaign-script routing and the nodata fix (uncommitted volume-allocation work), the stepwise null model (#36), and the header alias (#48).

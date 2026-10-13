@@ -15,6 +15,7 @@ legacy WBI convention (``birdaf_*_coeff``).
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,9 +24,11 @@ from typing import Any
 import yaml
 from ws3.forest import ForestModel
 
+from wbi_birds import __version__
 from wbi_birds.responses import (
     RESPONSE_TABLE_RELPATH,
     ResponseTable,
+    ResponseTableError,
     dtype_key_to_str,
     read_response_tables,
 )
@@ -238,7 +241,7 @@ def build_response_table(
     predict: Callable[[float, float, int], float],
     *,
     states: Sequence[tuple[tuple[str, ...], int]] | None = None,
-    acodes: Sequence[str] = ("null", "harvest"),
+    acodes: Sequence[str] | None = None,
     ages: Sequence[int] | None = None,
     sd: Callable[[float, float, int], float] | None = None,
     source: Mapping[str, Any] | None = None,
@@ -250,10 +253,19 @@ def build_response_table(
     arbitrarily non-linear; it is reproduced exactly because the row is a fixed
     coefficient per ``(development type, age)``. Pass a precomputed ``states``
     (from :func:`reachable_state_space`) when building tables for several
-    species to avoid repeating the dry enumeration pass.
+    species to avoid repeating the dry enumeration pass. Without ``states``, pass the
+    configured harvest actions as ``acodes`` (``model.harvest_acodes``); the null action is
+    always included. Non-finite predicted values are rejected.
     """
     if states is None:
-        states = reachable_state_space(model, acodes=acodes, ages=ages)
+        if acodes is None:
+            raise ValueError(
+                "build_response_table needs states or acodes: pass the configured harvest "
+                "actions (model.harvest_acodes) so the table covers the campaign's states."
+            )
+        states = reachable_state_space(
+            model, acodes=tuple(dict.fromkeys(("null", *acodes))), ages=ages
+        )
     values: dict[tuple[tuple[str, ...], int], float] = {}
     sd_values: dict[tuple[tuple[str, ...], int], float] = {}
     for dtype_key, age in states:
@@ -261,12 +273,18 @@ def build_response_table(
         softwood = development_type.ycomp("swdvol")
         hardwood = development_type.ycomp("hwdvol")
         assert softwood is not None and hardwood is not None
-        values[(dtype_key, age)] = float(predict(softwood[age], hardwood[age], age))
+        value = float(predict(softwood[age], hardwood[age], age))
+        if not math.isfinite(value):
+            raise ResponseTableError(f"Non-finite predicted value for {dtype_key} age {age}.")
+        values[(dtype_key, age)] = value
         if sd is not None:
-            sd_values[(dtype_key, age)] = float(sd(softwood[age], hardwood[age], age))
+            spread = float(sd(softwood[age], hardwood[age], age))
+            if not math.isfinite(spread):
+                raise ResponseTableError(f"Non-finite predicted spread for {dtype_key} age {age}.")
+            sd_values[(dtype_key, age)] = spread
     return ResponseTable(
         species_code=species_code,
         values=values,
         sd=sd_values,
-        source=dict(source or {}),
+        source={"engine_version": __version__, **dict(source or {})},
     )
