@@ -12,6 +12,7 @@ from wbi_birds.ingest import (
     ZeroFillSpec,
     ingest_ebd,
     ingest_ebd_zero_filled,
+    read_sed_events,
 )
 
 FIXTURE = Path(__file__).parent / "fixtures" / "ebd" / "sample_ebd.txt"
@@ -204,3 +205,25 @@ def test_zero_fill_requires_checklist_column(tmp_path: Path) -> None:
     )
     with pytest.raises(ValueError, match="SAMPLING EVENT IDENTIFIER"):
         ingest_ebd_zero_filled(_zero_spec(tmp_path, ebd_path=bad))
+
+
+def test_sed_reader_accepts_observation_type_header(tmp_path: Path) -> None:
+    """eBird renamed PROTOCOL TYPE to OBSERVATION TYPE in 2025; both headers must read alike."""
+    renamed = tmp_path / "sed_observation_type.txt"
+    renamed.write_text(
+        SED_FIXTURE.read_text(encoding="utf-8").replace("PROTOCOL TYPE", "OBSERVATION TYPE", 1),
+        encoding="utf-8",
+    )
+    events = read_sed_events(SED_FIXTURE)
+    assert events, "the fixture should yield events, so the comparison is not vacuous"
+    assert read_sed_events(renamed) == events
+
+
+def test_sed_reader_rejects_missing_protocol_column(tmp_path: Path) -> None:
+    unknown = tmp_path / "sed_unknown_protocol.txt"
+    unknown.write_text(
+        SED_FIXTURE.read_text(encoding="utf-8").replace("PROTOCOL TYPE", "PROTOCOL NAME", 1),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="no protocol column"):
+        read_sed_events(unknown)

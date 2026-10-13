@@ -353,3 +353,9 @@ Issue #35.
 - `wbi_birds.fit.stage_ensemble_response`: accepts `acodes`; `fit_report.json` records `engine_version`.
 - Tests: `tests/test_bird.py` (requires states or acodes; non-finite predictions; engine version); `tests/test_responses.py` (non-finite values; stale sidecar).
 - Review threads addressed: #34 (`bird.py` harvest default; `responses.py` sidecar check), #36 (`responses.py` non-finite values), #43 (`fit.py` engine version). Still open: campaign-script routing and the nodata fix (uncommitted volume-allocation work), the stepwise null model (#36), and the header alias (#48).
+## 2026-10-13 — SED header alias: OBSERVATION TYPE (#48)
+
+- `wbi_birds.ingest`: `protocol_type` accepts the 2025 eBird header `OBSERVATION TYPE` as well as `PROTOCOL TYPE`.
+- Missing protocol column: `read_sed_events` raises `ValueError` when the protocol filter is active. Previously a missing column dropped every checklist without an error, so an unaliased extract would have produced zero events silently.
+- Tests: `tests/test_ingest.py` reads the SED fixture under both headers and requires identical events; a missing protocol column raises.
+- Source: review thread on #40 (`ingest.py`, P1).
