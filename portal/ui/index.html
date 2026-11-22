@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WBI Birds — wood supply × bird abundance explorer</title>
+<meta name="description" content="Open, reproducible exploration of land base, bird anticipation models, and harvest–bird tradeoffs across five BC TSAs.">
+<link rel="stylesheet" href="vendor/fonts.css">
+<link rel="stylesheet" href="vendor/maplibre-gl.css">
+<link rel="stylesheet" href="styles.css">
+<script defer src="vendor/echarts.min.js"></script>
+<script defer src="vendor/maplibre-gl.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-contours" aria-hidden="true">
+    <svg viewBox="0 0 760 340" preserveAspectRatio="xMidYMid slice">
+      <g fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M-40 280C90 150 160 330 310 205S540 60 800 155"/>
+        <path d="M-40 250C80 135 180 300 320 180S560 45 800 125"/>
+        <path d="M-40 320C100 205 200 360 350 245S600 115 800 190"/>
+        <path d="M-30 205C100 90 210 240 340 140S590 5 810 85"/>
+        <path d="M40 355C170 265 250 390 390 290S610 175 800 230"/>
+      </g>
+    </svg>
+  </div>
+  <div class="header-sun" aria-hidden="true"></div>
+  <div class="header-inner">
+    <div class="brand-block">
+      <p class="eyebrow">UBC FRESH · WBI Birds · five-TSA campaign</p>
+      <h1>Wood supply <em>×</em> birds</h1>
+      <p class="subtitle">Land base, anticipation models, and the harvest–abundance frontier — open data, documented assumptions, reproducible pipeline.</p>
+    </div>
+    <div class="header-aside">
+      <span class="badge is-warn" id="status-badge"><span class="dot"></span><span id="status-text">loading data contract…</span></span>
+      <dl class="header-stats">
+        <div><dt>TSAs</dt><dd id="stat-tsas">—</dd></div>
+        <div><dt>Species</dt><dd id="stat-species">—</dd></div>
+        <div><dt>Generated</dt><dd class="mono" id="stat-generated">—</dd></div>
+      </dl>
+    </div>
+  </div>
+</header>
+
+<div class="nav-wrap"><nav id="nav">
+  <button data-page="overview" class="active">Overview</button>
+  <button data-page="landbase">Land base</button>
+  <button data-page="models">Bird models</button>
+  <button data-page="tradeoffs">Tradeoffs</button>
+  <button data-page="maps">Maps</button>
+</nav></div>
+
+<main>
+  <!-- OVERVIEW -->
+  <section id="page-overview" class="active">
+    <div class="page-head">
+      <div><h2>Integrated assessment at a glance</h2>
+        <p>Five BC timber supply areas, nine bird species, two anticipation models. This portal exposes the inputs, the fitted models, and the tradeoff results as they are produced.</p></div>
+    </div>
+    <div class="grid grid-4" id="overview-metrics"></div>
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card">
+        <h3>What this is</h3>
+        <p class="hint">A portal over the open modelling pipeline, not a static report.</p>
+        <div class="kv"><span>Land base</span><span>femic THLB net-down, calibrated to TSR-reported THLBs</span></div>
+        <div class="kv"><span>Bird models</span><span>Poisson GLM, log link, kNN v0 checklists (755,362 retained)</span></div>
+        <div class="kv"><span>Wood supply</span><span>ws4 matrix model, candidate chains, even-flow bands</span></div>
+        <div class="kv"><span>Tradeoffs</span><span>ε-constraint: harvest at equal relative bird attainment</span></div>
+      </div>
+      <div class="card">
+        <h3>Caveats</h3>
+        <p class="hint">Read these before quoting numbers.</p>
+        <div id="overview-caveats"></div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card"><h3>THLB: ours vs TSR</h3><p class="hint">Weighted THLB as a share of the TSR-reported land base. 1.0 = exact match.</p>
+        <div id="chart-thlb-ratio" class="chart short"></div></div>
+      <div class="card"><h3>Same schedule, two models</h3><p class="hint">Period-20 abundance change under one identical harvest schedule (TSA41, 1.021 M m³/yr).</p>
+        <div id="chart-impact-mini" class="chart short"></div></div>
+    </div>
+  </section>
+
+  <!-- LAND BASE -->
+  <section id="page-landbase">
+    <div class="page-head">
+      <div><h2>Land base</h2>
+        <p>Compiled from femic checkpoints. Operability is the documented THLB net-down; thresholds for TSA08 and TSA16 are calibrated so our weighted THLB matches the TSR-reported range (0.93–0.96).</p></div>
+    </div>
+    <div class="card">
+      <h3>TSA summary</h3><p class="hint">Weighted THLB = Σ area × thlb_raw/100 over retained polygons.</p>
+      <div id="landbase-table"></div>
+    </div>
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card"><h3>Area composition</h3><p class="hint">Managed (harvestable) vs unmanaged matrix, million hectares.</p>
+        <div id="chart-area" class="chart"></div></div>
+      <div class="card"><h3>THLB ratio to TSR</h3><p class="hint">1.0 would be an exact match; 0.93–0.96 is the calibrated band.</p>
+        <div id="chart-ratio" class="chart"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Stand age distribution</h3><p class="hint">Polygons by 20-year age class, split managed / unmanaged.</p>
+      <div class="toolbar"><label>TSA <select id="age-tsa"></select></label></div>
+      <div id="chart-age" class="chart tall"></div>
+    </div>
+  </section>
+
+  <!-- MODELS -->
+  <section id="page-models">
+    <div class="page-head">
+      <div><h2>Bird anticipation models</h2>
+        <p>Poisson GLM with log link, fitted to kNN v0 checklists. Aspatial uses stand volume and age only; the spatial model adds local forest cover, edge density, and early-seral fraction.</p></div>
+    </div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Methods</h3>
+        <div class="kv"><span>Response</span><span>birds per checklist, allocated to stand volume</span></div>
+        <div class="kv"><span>Link</span><span>log (quasi-Poisson)</span></div>
+        <div class="kv"><span>Checklists</span><span>819,302 sampled · 755,362 retained</span></div>
+        <div class="kv"><span>Aspatial terms</span><span>log1p(softwood), log1p(hardwood), age</span></div>
+        <div class="kv"><span>Spatial terms</span><span>+ pct_forest_1km, edge_1km, pct_early_500m</span></div>
+        <p class="note" style="margin-top:12px">Raw eBird records are never exposed. Only fitted coefficients, diagnostics, and aggregates appear here.</p>
+      </div>
+      <div class="card"><h3>Covariate distribution</h3><p class="hint">Local covariates at the 819k checklists; the spatial model uses the last three.</p>
+        <div id="cov-table"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Coefficients</h3>
+      <div class="toolbar"><label>Species <select id="model-species"></select></label>
+        <span class="pill sky">log link</span><span class="pill">log1p volumes</span></div>
+      <div class="grid grid-2">
+        <div><h4 style="margin:4px 0 8px">Aspatial</h4><div id="coef-aspatial"></div></div>
+        <div><h4 style="margin:4px 0 8px">Spatial (local)</h4><div id="coef-spatial"></div></div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card"><h3>Response to stand age</h3><p class="hint">Predicted abundance at a fixed volume mix (200 m³/ha, 70% softwood), no harvest neighbourhood.</p>
+        <div id="chart-age-response" class="chart"></div></div>
+      <div class="card"><h3>Harvest-neighbourhood effect</h3><p class="hint">Same stand, but with edge density 0.35 and early-seral fraction 0.25 around it.</p>
+        <div id="chart-edge-response" class="chart"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Fit diagnostics</h3><p class="hint">AIC and dispersion per species; lower AIC is better.</p>
+      <div id="diag-table"></div>
+    </div>
+  </section>
+
+  <!-- TRADEOFFS -->
+  <section id="page-tradeoffs">
+    <div class="page-head">
+      <div><h2>Harvest × bird tradeoffs</h2>
+        <p>ε-constraint results: the harvest that remains feasible when bird abundance must stay above a share of each model's own no-harvest value. Aspatial and spatial models are compared at equal relative attainment.</p></div>
+    </div>
+    <div class="warnbox" id="tradeoff-status"></div>
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card"><h3>Harvest at equal relative attainment</h3><p class="hint">TSA41 / GCKI pilot. Hollow markers are seed checks at 85%.</p>
+        <div id="chart-frontier" class="chart"></div></div>
+      <div class="card"><h3>Same-schedule impact, nine species</h3><p class="hint">One identical schedule (1.021 M m³/yr), same landscape; change in period-20 abundance.</p>
+        <div id="chart-impact" class="chart"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Verdict</h3><div id="verdict"></div>
+    </div>
+  </section>
+
+  <!-- MAPS -->
+  <section id="page-maps">
+    <div class="page-head">
+      <div><h2>Maps</h2>
+        <p>Full-resolution block geometry as vector tiles, generalised per zoom. Switch between management status and the year of first harvest in the current warm-start schedule.</p></div>
+    </div>
+    <div class="toolbar">
+      <label>TSA <select id="map-tsa"></select></label>
+      <label>Layer
+        <span class="seg" id="map-layer">
+          <button data-layer="managed" class="active">Management status</button>
+          <button data-layer="year">Harvest year</button>
+        </span>
+      </label>
+      <span id="map-count" class="pill"></span>
+    </div>
+    <div id="map"></div>
+    <div class="legend" id="map-legend"></div>
+    <p class="note" style="margin-top:12px">Basemap tiles require network access; the polygons render regardless. Geometry simplified for the web; not for measurement.</p>
+  </section>
+</main>
+
+<footer>
+  <p>WBI Birds · open modelling pipeline · data contract generated <span id="footer-generated" class="mono">—</span>. Sources: femic checkpoints, kNN v0 bird fits, ws4 matrix model, campaign artifacts.</p>
+</footer>
+</body>
+</html>
