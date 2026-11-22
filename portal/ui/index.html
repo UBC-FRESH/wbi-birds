@@ -153,8 +153,11 @@
     </div>
     <div class="warnbox" id="tradeoff-status"></div>
     <div class="grid grid-2" style="margin-top:16px">
-      <div class="card"><h3>Harvest at equal relative attainment</h3><p class="hint">TSA41 / GCKI pilot. Hollow markers are seed checks at 85%.</p>
-        <div id="chart-frontier" class="chart"></div></div>
+      <div class="card"><h3>Harvest at equal relative attainment</h3>
+        <div class="toolbar"><label>TSA <select id="front-tsa"></select></label>
+          <label>Species <select id="front-bird"></select></label></div>
+        <div id="chart-frontier" class="chart"></div>
+        <div id="frontier-table" style="margin-top:8px"></div></div>
       <div class="card"><h3>Same-schedule impact, nine species</h3><p class="hint">One identical schedule (1.021 M m³/yr), same landscape; change in period-20 abundance.</p>
         <div id="chart-impact" class="chart"></div></div>
     </div>
