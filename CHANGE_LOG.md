@@ -364,9 +364,9 @@ Issue #35.
 
 - `scripts/guild_frontier.py`: a failed e-constraint point no longer aborts the whole
   frontier. The point is recorded as infeasible and the CSV is still written from the
-  successful points. At 100% relative attainment the floor equals the no-harvest baseline,
-  which the harvest target makes infeasible; the old script raised and discarded the whole
-  guild curve.
+  successful points. The first mature-conifer run lost its 1.00 point to a transient failure
+  under load and discarded the whole curve; the point is feasible (0.405 aspatial /
+  0.519 spatial) and was re-run.
 - Added `--reuse` so a resumed run can assemble from existing point CSVs.
 - TSA41 frontiers re-run on the corrected guild accounts; 0.80-0.99 retained, 1.00 reported
   infeasible.

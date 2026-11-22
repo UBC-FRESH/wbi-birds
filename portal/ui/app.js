@@ -204,20 +204,26 @@ function renderSpecies(code) {
 function renderTradeoffs() {
   const fr = state.frontiers;
   const pts = fr.points;
+  const guildPts = fr.guild_frontier || [];
+  const guilds = [...new Set(guildPts.map(p => p.bird))].sort();
   $("#tradeoff-status").innerHTML = fr.status === "pilot"
     ? `<b>Pilot data.</b> These points are the TSA41 / GCKI pilot.`
     : `<b>Campaign data.</b> ${pts.length} points across ${[...new Set(pts.map(p => p.tsa))].length} TSAs and ${[...new Set(pts.map(p => p.bird))].length} species, two attainments, two models. `
-      + ((fr.guild_frontier || []).length ? `Plus a fine guild frontier for TSA41 / mature conifer (${(fr.guild_frontier || []).length} points).` : "");
+      + (guildPts.length ? `Plus ${guilds.length} fine guild frontiers for TSA41 (${guilds.map(g => g.replaceAll("_", " ")).join(", ")}).` : "");
 
   const tsas = [...new Set(pts.map(p => p.tsa))].sort();
-  const guildPts = fr.guild_frontier || [];
-  const guilds = [...new Set(guildPts.map(p => p.bird))].sort();
   const speciesList = [...new Set(pts.map(p => p.bird))].sort();
   const birds = [...speciesList, ...guilds];
   const tsaSel = $("#front-tsa"), birdSel = $("#front-bird");
   tsaSel.innerHTML = tsas.map(t => `<option value="${t}">${t.replace("tsa", "TSA ")}</option>`).join("");
-  birdSel.innerHTML = [...speciesList.map(b => `<option value="${b}">${b.toUpperCase()}</option>`),
-    ...guilds.map(g => `<option value="${g}">${g.replace("_", " ")} (guild)</option>`)].join("");
+  birdSel.innerHTML = [
+    `<optgroup label="Species">`,
+    ...speciesList.map(b => `<option value="${b}">${b.toUpperCase()}</option>`),
+    `</optgroup>`,
+    `<optgroup label="Guild aggregates (sum of member species)">`,
+    ...guilds.map(g => `<option value="${g}">GUILD · ${g.replaceAll("_", " ")}</option>`),
+    `</optgroup>`,
+  ].join("");
   if (tsas.includes("tsa41")) tsaSel.value = "tsa41";
   if (birds.includes("gockin")) birdSel.value = "gockin";
 
@@ -285,7 +291,7 @@ function renderTradeoffs() {
     <p class="note" style="margin:8px 0"><b>Result:</b> ${fr.verdict.result}</p>
     <p class="note" style="margin:8px 0"><b>Sign flips under one identical schedule:</b> ${flips.length ? flips.join(", ") : "none"}.</p>
     <p class="note" style="margin:8px 0">At matched relative attainment the two models can disagree in magnitude and in sign. The spatial model prices edge and early-seral habitat loss on retained neighbouring forest; the aspatial model prices only the harvested stand.</p>
-    <p class="note" style="margin:8px 0"><b>TSA41 mature-conifer guild:</b> the aspatial model supports up to <b>52.9%</b> more harvest at equal attainment (peak at 94%); the curves converge at 100%, where light harvest keeps the guild at its no-harvest total.</p>`;
+    <p class="note" style="margin:8px 0"><b>TSA41 guild frontiers:</b> the floor binds under both models for mature conifer (up to <b>35%</b> more aspatial harvest, peak at 92%) and only under the aspatial model for mixedwood (49% at full attainment). Early seral and cavity stay at the harvest ceiling under both models at this target.</p>`;
   draw();
 }
 
