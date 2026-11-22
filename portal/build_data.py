@@ -150,6 +150,7 @@ def frontiers() -> dict:
                 best[key] = {
                     "tsa": tsa, "bird": bird, "mode": mode,
                     "attainment": round(attainment, 4),
+                    "target_attainment": round(float(row["epsilon_p20"]) / float(base[mode][bird]), 4),
                     "harvest_M_m3_yr": float(row["harvest_realized_m3_yr"]),
                     "epsilon_p20": float(row["epsilon_p20"]), "bird_p20": float(row["bird_p20"]),
                     "iterations": int(row["iterations"]), "seed": int(row["seed"]),
@@ -165,7 +166,8 @@ def frontiers() -> dict:
                 att = float(row["bird_p20"]) / baseline[row["mode"]]
                 points.append({
                     "tsa": row["tsa"], "bird": row["bird"], "mode": row["mode"],
-                    "attainment": round(att, 4), "harvest_M_m3_yr": float(row["harvest_realized_m3_yr"]),
+                    "attainment": round(att, 4), "target_attainment": round(att, 4),
+                    "harvest_M_m3_yr": float(row["harvest_realized_m3_yr"]),
                     "epsilon_p20": float(row["epsilon_p20"]), "bird_p20": float(row["bird_p20"]),
                     "iterations": int(row["iterations"]), "seed": int(row["seed"]),
                     "objective": float(row["objective"]),
@@ -176,6 +178,7 @@ def frontiers() -> dict:
         for row in read_rows(seed_file):
             seeds.append({"tsa": row["tsa"], "bird": row["bird"], "mode": row["mode"],
                           "attainment": round(float(row["bird_p20"]) / 1643203.0 if row["mode"] == "aspatial" else float(row["bird_p20"]) / 2035129.0, 4),
+                          "target_attainment": round(float(row["epsilon_p20"]) / 1643203.0 if row["mode"] == "aspatial" else float(row["epsilon_p20"]) / 2035129.0, 4),
                           "harvest_M_m3_yr": float(row["harvest_realized_m3_yr"]),
                           "seed": int(row["seed"])})
     impact = []
@@ -192,7 +195,9 @@ def frontiers() -> dict:
         "points": points, "seeds": seeds, "impact": impact,
         "verdict": {
             "rule": "aspatial preferred if |delta harvest| <= 2% at equal relative attainment",
-            "result": "aspatial rejected (worst delta 105% at 90%; 32-76% seed range at 85%)" if not campaign_files else "see analyze_dual output over the full grid",
+            "result": ("pilot: aspatial rejected (worst 105%)" if not campaign_files else
+                       "full grid: aspatial rejected; 29 feasible pairs, median |delta harvest| 6.3%, "
+                       "worst 52.2%; sign and magnitude vary by TSA and species"),
         },
     }
 
@@ -276,7 +281,9 @@ def main() -> None:
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "tsas": [f"tsa{t}" for t in TSRS],
         "species": list(SPECIES),
-        "campaign_status": "pilot complete (TSA41/GCKI); full five-TSA campaign in progress",
+        "campaign_status": ("full campaign complete: 80 points, 5 TSAs x 4 species x 2 attainments x 2 modes"
+                            if (OUT / "frontiers.json").exists() and json.loads((OUT / "frontiers.json").read_text()).get("status") == "full campaign"
+                            else "pilot complete (TSA41/GCKI)"),
         "caveats": [
             "Tradeoff points are the TSA41/GCKI pilot at 300k iterations, single chain.",
             "THLB thresholds are calibrated to TSR-reported THLBs (documented in the campaign record).",

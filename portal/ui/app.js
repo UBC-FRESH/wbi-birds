@@ -205,28 +205,57 @@ function renderTradeoffs() {
   const fr = state.frontiers;
   const pts = fr.points;
   $("#tradeoff-status").innerHTML = fr.status === "pilot"
-    ? `<b>Pilot data.</b> These points are the TSA41 / GCKI pilot (300k iterations, single chain, seed 42). The full five-TSA campaign is running; numbers will be replaced when it converges.`
-    : `<b>Campaign data.</b> ${pts.length} points across TSAs and species.`;
+    ? `<b>Pilot data.</b> These points are the TSA41 / GCKI pilot.`
+    : `<b>Campaign data.</b> ${pts.length} points across ${[...new Set(pts.map(p => p.tsa))].length} TSAs and ${[...new Set(pts.map(p => p.bird))].length} species, two attainments, two models.`;
 
-  const modes = ["aspatial", "spatial"];
-  const byMode = Object.fromEntries(modes.map(m => [m, pts.filter(p => p.mode === m).sort((a, b) => a.attainment - b.attainment)]));
-  const seeds = fr.seeds || [];
-  const c = chart("chart-frontier");
-  c.setOption({
-    grid: { left: 62, right: 28, top: 34, bottom: 42 },
-    tooltip: { trigger: "axis", valueFormatter: v => Number(v).toFixed(3) },
-    legend: { data: ["aspatial", "spatial", "seed checks"], top: 0, textStyle: baseText },
-    xAxis: { type: "value", min: 0.8, max: 1.0, name: "relative bird attainment", nameLocation: "middle", nameGap: 28, axisLabel: { ...baseText, formatter: v => v.toFixed(2) } },
-    yAxis: { type: "value", name: "harvest (M m³/yr)", axisLabel: baseText, splitLine: { lineStyle: { color: "#eee9dd" } } },
-    series: [
-      ...modes.map(m => ({
-        name: m, type: "line", data: byMode[m].map(p => [p.attainment, p.harvest_M_m3_yr]),
-        lineStyle: { color: PALETTE[m], width: 2.5 }, itemStyle: { color: PALETTE[m] }, symbolSize: 8,
-      })),
-      { name: "seed checks", type: "scatter", data: seeds.map(p => [p.attainment, p.harvest_M_m3_yr]),
-        itemStyle: { color: "#fff", borderColor: "#666", borderWidth: 1.4 }, symbolSize: 9 },
-    ],
-  });
+  const tsas = [...new Set(pts.map(p => p.tsa))].sort();
+  const birds = [...new Set(pts.map(p => p.bird))].sort();
+  const tsaSel = $("#front-tsa"), birdSel = $("#front-bird");
+  tsaSel.innerHTML = tsas.map(t => `<option value="${t}">${t.replace("tsa", "TSA ")}</option>`).join("");
+  birdSel.innerHTML = birds.map(b => `<option value="${b}">${b.toUpperCase()}</option>`).join("");
+  if (tsas.includes("tsa41")) tsaSel.value = "tsa41";
+  if (birds.includes("gockin")) birdSel.value = "gockin";
+
+  function draw() {
+    const tsa = tsaSel.value, bird = birdSel.value;
+    const sel = pts.filter(p => p.tsa === tsa && p.bird === bird);
+    const modes = ["aspatial", "spatial"];
+    const seeds = (fr.seeds || []).filter(p => p.tsa === tsa && p.bird === bird);
+    const c = chart("chart-frontier");
+    c.setOption({
+      grid: { left: 62, right: 28, top: 34, bottom: 42 },
+      tooltip: { trigger: "axis", valueFormatter: v => Number(v).toFixed(3) },
+      legend: { data: [...modes, "seed checks"], top: 0, textStyle: baseText },
+      xAxis: { type: "value", min: 0.8, max: 1.0, name: "constraint target (share of no-harvest)",
+               nameLocation: "middle", nameGap: 28, axisLabel: { ...baseText, formatter: v => v.toFixed(2) } },
+      yAxis: { type: "value", name: "harvest (M m³/yr)", axisLabel: baseText, splitLine: { lineStyle: { color: "#eee9dd" } } },
+      series: [
+        ...modes.map(m => ({
+          name: m, type: "line",
+          data: sel.filter(p => p.mode === m)
+                   .sort((a, b) => a.target_attainment - b.target_attainment)
+                   .map(p => [p.target_attainment, p.harvest_M_m3_yr]),
+          lineStyle: { color: PALETTE[m], width: 2.5 }, itemStyle: { color: PALETTE[m] }, symbolSize: 8,
+        })),
+        { name: "seed checks", type: "scatter",
+          data: seeds.map(p => [p.target_attainment, p.harvest_M_m3_yr]),
+          itemStyle: { color: "#fff", borderColor: "#666", borderWidth: 1.4 }, symbolSize: 9 },
+      ],
+    });
+    const rows = sel.filter(p => p.mode === "aspatial" || p.mode === "spatial")
+      .sort((a, b) => a.target_attainment - b.target_attainment || a.mode.localeCompare(b.mode));
+    const pair = {};
+    rows.forEach(r => { pair[r.target_attainment] = pair[r.target_attainment] || {}; pair[r.target_attainment][r.mode] = r; });
+    $("#frontier-table").innerHTML = `<table><thead><tr><th>target</th><th class="num">aspatial</th><th class="num">spatial</th><th class="num">delta</th></tr></thead><tbody>
+      ${Object.entries(pair).map(([k, v]) => {
+        if (!v.aspatial || !v.spatial) return "";
+        const a = Number(v.aspatial.harvest_M_m3_yr), s = Number(v.spatial.harvest_M_m3_yr);
+        const d = s ? 100 * (a - s) / s : NaN;
+        return `<tr><td>${Number(k).toFixed(2)}</td><td class="num">${a.toFixed(3)}</td><td class="num">${s.toFixed(3)}</td><td class="num">${d.toFixed(1)}%</td></tr>`;
+      }).join("")}</tbody></table>`;
+  }
+  tsaSel.onchange = draw;
+  birdSel.onchange = draw;
 
   const impact = fr.impact;
   const ci = chart("chart-impact");
@@ -247,7 +276,8 @@ function renderTradeoffs() {
     <p class="note" style="margin:8px 0"><b>Rule:</b> ${fr.verdict.rule}</p>
     <p class="note" style="margin:8px 0"><b>Result:</b> ${fr.verdict.result}</p>
     <p class="note" style="margin:8px 0"><b>Sign flips under one identical schedule:</b> ${flips.length ? flips.join(", ") : "none"}.</p>
-    <p class="note" style="margin:8px 0">At equal relative attainment the aspatial model supports more harvest because it prices only the harvested stand; the spatial model also prices edge and early-seral habitat loss on retained neighbouring forest.</p>`;
+    <p class="note" style="margin:8px 0">At matched relative attainment the two models can disagree in magnitude and in sign. The spatial model prices edge and early-seral habitat loss on retained neighbouring forest; the aspatial model prices only the harvested stand.</p>`;
+  draw();
 }
 
 function renderMaps() {
