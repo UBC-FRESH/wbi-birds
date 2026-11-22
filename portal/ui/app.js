@@ -206,19 +206,26 @@ function renderTradeoffs() {
   const pts = fr.points;
   $("#tradeoff-status").innerHTML = fr.status === "pilot"
     ? `<b>Pilot data.</b> These points are the TSA41 / GCKI pilot.`
-    : `<b>Campaign data.</b> ${pts.length} points across ${[...new Set(pts.map(p => p.tsa))].length} TSAs and ${[...new Set(pts.map(p => p.bird))].length} species, two attainments, two models.`;
+    : `<b>Campaign data.</b> ${pts.length} points across ${[...new Set(pts.map(p => p.tsa))].length} TSAs and ${[...new Set(pts.map(p => p.bird))].length} species, two attainments, two models. `
+      + ((fr.guild_frontier || []).length ? `Plus a fine guild frontier for TSA41 / mature conifer (${(fr.guild_frontier || []).length} points).` : "");
 
   const tsas = [...new Set(pts.map(p => p.tsa))].sort();
-  const birds = [...new Set(pts.map(p => p.bird))].sort();
+  const guildPts = fr.guild_frontier || [];
+  const guilds = [...new Set(guildPts.map(p => p.bird))].sort();
+  const speciesList = [...new Set(pts.map(p => p.bird))].sort();
+  const birds = [...speciesList, ...guilds];
   const tsaSel = $("#front-tsa"), birdSel = $("#front-bird");
   tsaSel.innerHTML = tsas.map(t => `<option value="${t}">${t.replace("tsa", "TSA ")}</option>`).join("");
-  birdSel.innerHTML = birds.map(b => `<option value="${b}">${b.toUpperCase()}</option>`).join("");
+  birdSel.innerHTML = [...speciesList.map(b => `<option value="${b}">${b.toUpperCase()}</option>`),
+    ...guilds.map(g => `<option value="${g}">${g.replace("_", " ")} (guild)</option>`)].join("");
   if (tsas.includes("tsa41")) tsaSel.value = "tsa41";
   if (birds.includes("gockin")) birdSel.value = "gockin";
 
   function draw() {
     const tsa = tsaSel.value, bird = birdSel.value;
-    const sel = pts.filter(p => p.tsa === tsa && p.bird === bird);
+    const isGuild = guilds.includes(bird);
+    const sel = isGuild ? guildPts.filter(p => p.tsa === tsa && p.bird === bird)
+                        : pts.filter(p => p.tsa === tsa && p.bird === bird);
     const modes = ["aspatial", "spatial"];
     const seeds = (fr.seeds || []).filter(p => p.tsa === tsa && p.bird === bird);
     const c = chart("chart-frontier");
@@ -226,7 +233,7 @@ function renderTradeoffs() {
       grid: { left: 62, right: 28, top: 34, bottom: 42 },
       tooltip: { trigger: "axis", valueFormatter: v => Number(v).toFixed(3) },
       legend: { data: [...modes, "seed checks"], top: 0, textStyle: baseText },
-      xAxis: { type: "value", min: 0.8, max: 1.0, name: "constraint target (share of no-harvest)",
+      xAxis: { type: "value", min: 0.7, max: 1.0, name: "constraint target (share of no-harvest)",
                nameLocation: "middle", nameGap: 28, axisLabel: { ...baseText, formatter: v => v.toFixed(2) } },
       yAxis: { type: "value", name: "harvest (M m³/yr)", axisLabel: baseText, splitLine: { lineStyle: { color: "#eee9dd" } } },
       series: [
@@ -245,13 +252,14 @@ function renderTradeoffs() {
     const rows = sel.filter(p => p.mode === "aspatial" || p.mode === "spatial")
       .sort((a, b) => a.target_attainment - b.target_attainment || a.mode.localeCompare(b.mode));
     const pair = {};
-    rows.forEach(r => { pair[r.target_attainment] = pair[r.target_attainment] || {}; pair[r.target_attainment][r.mode] = r; });
+    rows.forEach(r => { const k = Number(r.target_attainment); pair[k] = pair[k] || {}; pair[k][r.mode] = r; });
     $("#frontier-table").innerHTML = `<table><thead><tr><th>target</th><th class="num">aspatial</th><th class="num">spatial</th><th class="num">delta</th></tr></thead><tbody>
-      ${Object.entries(pair).map(([k, v]) => {
+      ${Object.keys(pair).map(Number).sort((a, b) => a - b).map(k => {
+        const v = pair[k];
         if (!v.aspatial || !v.spatial) return "";
         const a = Number(v.aspatial.harvest_M_m3_yr), s = Number(v.spatial.harvest_M_m3_yr);
         const d = s ? 100 * (a - s) / s : NaN;
-        return `<tr><td>${Number(k).toFixed(2)}</td><td class="num">${a.toFixed(3)}</td><td class="num">${s.toFixed(3)}</td><td class="num">${d.toFixed(1)}%</td></tr>`;
+        return `<tr><td>${k.toFixed(2)}</td><td class="num">${a.toFixed(3)}</td><td class="num">${s.toFixed(3)}</td><td class="num">${d.toFixed(1)}%</td></tr>`;
       }).join("")}</tbody></table>`;
   }
   tsaSel.onchange = draw;
@@ -276,7 +284,8 @@ function renderTradeoffs() {
     <p class="note" style="margin:8px 0"><b>Rule:</b> ${fr.verdict.rule}</p>
     <p class="note" style="margin:8px 0"><b>Result:</b> ${fr.verdict.result}</p>
     <p class="note" style="margin:8px 0"><b>Sign flips under one identical schedule:</b> ${flips.length ? flips.join(", ") : "none"}.</p>
-    <p class="note" style="margin:8px 0">At matched relative attainment the two models can disagree in magnitude and in sign. The spatial model prices edge and early-seral habitat loss on retained neighbouring forest; the aspatial model prices only the harvested stand.</p>`;
+    <p class="note" style="margin:8px 0">At matched relative attainment the two models can disagree in magnitude and in sign. The spatial model prices edge and early-seral habitat loss on retained neighbouring forest; the aspatial model prices only the harvested stand.</p>
+    <p class="note" style="margin:8px 0"><b>TSA41 mature-conifer guild:</b> the aspatial model supports up to <b>52.9%</b> more harvest at equal attainment (peak at 94%); the curves converge at 100%, where light harvest keeps the guild at its no-harvest total.</p>`;
   draw();
 }
 

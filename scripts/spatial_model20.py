@@ -21,6 +21,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from spatial_evaluator import RasterState, classify  # noqa: E402
 
 SPECIES = ("rebnut", "borchi2", "gockin", "brncre", "yerwar", "swathr", "whtspa", "tenwar", "yebsap")
+GUILDS = {
+    "mature_conifer": ("rebnut", "borchi2", "gockin", "brncre"),
+    "mixedwood": ("yerwar", "swathr"),
+    "early_seral": ("whtspa", "tenwar"),
+    "cavity": ("yebsap",),
+}
 HARD = {"AT", "AC", "ACT", "EP"}
 YEAR = 199  # period-20 end
 MAX_AGE = 300
@@ -45,13 +51,18 @@ def _volumes(dataset: Path):
 
 
 class SpatialBird20:
-    def __init__(self, dataset: Path, geometry: Path, fits: Path, species: str | None = None):
+    def __init__(self, dataset: Path, geometry: Path, fits: Path, species: str | None = None,
+                 guild: str | None = None):
         frag = pd.read_parquet(dataset / "fragments.parquet")
         ids = frag["block_id"].to_numpy(int)
         if not np.array_equal(ids, np.arange(len(ids))):
             raise ValueError("fragment rows are not block-id ordered; cannot index by block id")
         self.n = len(frag)
-        self.species = tuple(SPECIES) if species is None else (species,)
+        self.guild_key = guild
+        if guild is not None:
+            self.species = GUILDS[guild]
+        else:
+            self.species = tuple(SPECIES) if species is None else (species,)
         self.initial = frag["age"].to_numpy(float)
         self.area = frag["area_ha"].to_numpy(float)
         self.track = frag["track_id"].to_numpy(int)
@@ -106,7 +117,10 @@ class SpatialBird20:
         return values
 
     def _sum_values(self) -> dict[str, float]:
-        return {sp: float(v.sum()) for sp, v in self.values.items()}
+        totals = {sp: float(v.sum()) for sp, v in self.values.items()}
+        if self.guild_key is not None:
+            totals[self.guild_key] = float(sum(totals[sp] for sp in self.species))
+        return totals
 
     def totals(self) -> dict[str, float]:
         return dict(self._tot)
@@ -201,5 +215,10 @@ class SpatialBird20:
                 new = (area * np.exp(np.clip(eta, -30, self.fits[sp]["eta_cap"]))).astype(np.float32)
                 self._tot[sp] += float(new.sum()) - float(self.values[sp][sub].sum())
                 self.values[sp][sub] = new
-        return {sp: self._tot[sp] - before[sp] for sp in self.species}
+            if self.guild_key is not None:
+                self._tot[self.guild_key] = float(sum(self._tot[sp] for sp in self.species))
+        delta = {sp: self._tot[sp] - before[sp] for sp in self.species}
+        if self.guild_key is not None:
+            delta[self.guild_key] = self._tot[self.guild_key] - before.get(self.guild_key, 0.0)
+        return delta
 
