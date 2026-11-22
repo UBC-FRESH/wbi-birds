@@ -190,8 +190,23 @@ def frontiers() -> dict:
                            "aspatial_pct": float(row["aspatial_pct"]),
                            "spatial_pct": float(row["spatial_pct"]),
                            "sign_flip": row["sign_flip"].lower() == "true"})
+    guild_points = []
+    for path in sorted(CAMPAIGNS.glob("dual/tsa*-*-frontier.csv")):
+        for row in read_rows(path):
+            if "attainment_target" not in row:
+                continue
+            guild_points.append({
+                "tsa": row["tsa"], "bird": row["bird"], "mode": row["mode"],
+                "target_attainment": float(row["attainment_target"]),
+                "attainment": round(float(row["bird_p20"]) / float(row["baseline"]), 4),
+                "epsilon_p20": float(row["epsilon_p20"]),
+                "bird_p20": float(row["bird_p20"]),
+                "harvest_M_m3_yr": float(row["harvest_realized_m3_yr"]),
+                "deficit": round(float(row["epsilon_p20"]) - float(row["bird_p20"]), 1),
+            })
     return {
         "status": "full campaign" if campaign_files and points else "pilot",
+        "guild_frontier": guild_points,
         "points": points, "seeds": seeds, "impact": impact,
         "verdict": {
             "rule": "aspatial preferred if |delta harvest| <= 2% at equal relative attainment",

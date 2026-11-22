@@ -87,7 +87,7 @@ def main() -> int:
     parser.add_argument("--geometry", type=Path, default=None)
     parser.add_argument("--fits", type=Path, default=None)
     parser.add_argument("--candidates", type=Path, default=None)
-    parser.add_argument("--bird", choices=BIRDS, default="gockin")
+    parser.add_argument("--bird", default="gockin")
     parser.add_argument("--epsilons", nargs="+", type=float, required=True)
     parser.add_argument("--pull", type=float, default=40e6)
     parser.add_argument("--band", type=float, default=5.0)
@@ -139,7 +139,11 @@ def main() -> int:
 
     spatial = None
     if args.mode == "spatial":
-        spatial = SpatialBird20(dataset, args.geometry, args.fits, species=args.bird)
+        from spatial_model20 import GUILDS
+        if args.bird in GUILDS:
+            spatial = SpatialBird20(dataset, args.geometry, args.fits, guild=args.bird)
+        else:
+            spatial = SpatialBird20(dataset, args.geometry, args.fits, species=args.bird)
 
     current = load_schedule_csv(args.initial) if args.initial is not None else {}
     rows: list[dict] = []
