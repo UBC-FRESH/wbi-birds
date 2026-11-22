@@ -291,7 +291,7 @@ function renderTradeoffs() {
     <p class="note" style="margin:8px 0"><b>Result:</b> ${fr.verdict.result}</p>
     <p class="note" style="margin:8px 0"><b>Sign flips under one identical schedule:</b> ${flips.length ? flips.join(", ") : "none"}.</p>
     <p class="note" style="margin:8px 0">At matched relative attainment the two models can disagree in magnitude and in sign. The spatial model prices edge and early-seral habitat loss on retained neighbouring forest; the aspatial model prices only the harvested stand.</p>
-    <p class="note" style="margin:8px 0"><b>TSA41 guild frontiers:</b> the floor binds under both models for mature conifer (up to <b>35%</b> more aspatial harvest, peak at 92%) and only under the aspatial model for mixedwood (49% at full attainment). Early seral and cavity stay at the harvest ceiling under both models at this target.</p>`;
+    <p class="note" style="margin:8px 0"><b>TSA41 guild frontiers:</b> the floor binds under both models for mature conifer (up to <b>35%</b> more aspatial harvest, peak at 92%) and only under the aspatial model for mixedwood (49% at full attainment). Early seral and cavity stay at the harvest ceiling because their floors are slack, not because harvest has no effect: under one moderate schedule five species gain and four lose, so the result is a redistribution, not a community-wide loss.</p>`;
   draw();
 }
 
