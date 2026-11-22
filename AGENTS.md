@@ -14,6 +14,21 @@ Pattern repos: `UBC-FRESH/fresh-daugherty` (closest analogue), `UBC-FRESH/fhops`
 - **Raw eBird data are never redistributed**; derived products only (see manuscript repo `planning/ebird-data-request*.md`). Private raw store: submodule `external/wbi-ebird-data` (DataLad); CI does not init submodules; never publish its content.
 - Workflow layer: **FreshForge** — pipeline graphs in `workflows/`, provider `wbi` via the `freshforge.providers` entry point; evidence manifests are the run-record contract; FreshForge stays domain-neutral while this repo owns node execution.
 
+## Existing web dashboard — extend it, do not rebuild
+
+The project already has a live dashboard. It lives outside the repo on the shared server:
+
+- path: `/srv/shared-data/gep/jupyterhub16-projects/wbi-portal`
+- public: `https://wbi-birds.01101.dev` (Cloudflare Access) · local service: `:8132`
+- stack: static UI (vendored ECharts + MapLibre, no build step) + optional FastAPI shell
+
+Key files: `ui/index.html`, `ui/app.js`, `ui/styles.css`, `ui/data/*.json`, `ui/tiles/<tsa>/`,
+`build_data.py` (regenerates the data contract from `campaigns/ws4-five-tsa-2026-11`),
+`build_tiles.py` (tippecanoe vector tiles), `server.py` (static server + `/api/blocks` viewport API),
+`README.md`. Pages: overview, land base, bird models, tradeoffs, maps.
+
+Do not create a second dashboard in this repo. Read the portal's README and extend it.
+
 ## Current repo state
 
 Phase E-P1 (scaffold). Layout: `src/wbi_birds/`, `tests/`, `docs/`, `examples/`, `planning/`, `results/`,
