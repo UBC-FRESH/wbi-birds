@@ -359,3 +359,14 @@ Issue #35.
 - Missing protocol column: `read_sed_events` raises `ValueError` when the protocol filter is active. Previously a missing column dropped every checklist without an error, so an unaliased extract would have produced zero events silently.
 - Tests: `tests/test_ingest.py` reads the SED fixture under both headers and requires identical events; a missing protocol column raises.
 - Source: review thread on #40 (`ingest.py`, P1).
+
+## 2026-11-22 — Guild frontier: continue past infeasible 100% points
+
+- `scripts/guild_frontier.py`: a failed e-constraint point no longer aborts the whole
+  frontier. The point is recorded as infeasible and the CSV is still written from the
+  successful points. At 100% relative attainment the floor equals the no-harvest baseline,
+  which the harvest target makes infeasible; the old script raised and discarded the whole
+  guild curve.
+- Added `--reuse` so a resumed run can assemble from existing point CSVs.
+- TSA41 frontiers re-run on the corrected guild accounts; 0.80-0.99 retained, 1.00 reported
+  infeasible.
