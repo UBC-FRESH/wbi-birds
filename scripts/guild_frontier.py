@@ -39,6 +39,7 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--driver", type=Path, default=Path(__file__).with_name("run_spatial_sa.py"))
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--reuse", action="store_true")
     args = parser.parse_args()
 
     sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -74,7 +75,8 @@ def main() -> int:
         for mode, baseline in (("aspatial", base_aspatial), ("spatial", base_spatial)):
             epsilon = round(att * baseline)
             out = work / f"{mode}-{int(epsilon)}.csv"
-            out.unlink(missing_ok=True)
+            if not args.reuse:
+                out.unlink(missing_ok=True)
             command = [sys.executable, str(args.driver),
                        "--dataset", str(args.dataset), "--bird", args.guild,
                        "--epsilons", str(epsilon), "--iterations", str(args.iterations),
@@ -88,17 +90,26 @@ def main() -> int:
     def run(job):
         mode, att, epsilon, out, command = job
         started = time.perf_counter()
-        subprocess.run(command, check=True, capture_output=True, text=True)
-        return mode, att, epsilon, out, time.perf_counter() - started
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+            return mode, att, epsilon, out, time.perf_counter() - started, None
+        except subprocess.CalledProcessError as exc:
+            msg = (exc.stderr or exc.stdout or "").strip().splitlines()
+            return mode, att, epsilon, out, time.perf_counter() - started, (msg[-1] if msg else f"exit {exc.returncode}")
 
     results = []
     with ThreadPoolExecutor(max_workers=args.min_workers if hasattr(args, "min_workers") else args.workers) as pool:
         for result in pool.map(run, jobs):
             results.append(result)
-            print(f"{result[0]:8s} {result[1]:.2f} eps {result[2]:,} ({result[4]:.0f}s)", flush=True)
+            status = "ok" if result[5] is None else f"FAILED: {result[5]}"
+            print(f"{result[0]:8s} {result[1]:.2f} eps {result[2]:,} ({result[4]:.0f}s) {status}", flush=True)
 
     rows = []
-    for mode, att, epsilon, out, elapsed in results:
+    failed = 0
+    for mode, att, epsilon, out, elapsed, error in results:
+        if error is not None or not out.exists() or out.stat().st_size == 0:
+            failed += 1
+            continue
         with out.open() as handle:
             for row in csv.DictReader(handle):
                 row["attainment_target"] = att
@@ -110,7 +121,7 @@ def main() -> int:
     with args.out.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader(); writer.writerows(rows)
-    print(f"wrote {args.out} ({len(rows)} points)", flush=True)
+    print(f"wrote {args.out} ({len(rows)} points, {failed} infeasible)", flush=True)
     return 0
 
 
