@@ -22,6 +22,8 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--dataset", type=Path, required=True)
     p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--force", action="store_true",
+                   help="overwrite an existing prime output (default: refuse)")
     p.add_argument("--record", type=Path, default=None)
     p.add_argument("--iterations", nargs="+", type=int,
                    default=[500_000, 1_000_000, 2_000_000])
@@ -33,8 +35,12 @@ def main() -> int:
     p.add_argument("--prime-script", type=Path,
                    default=Path(__file__).with_name("prime_schedule.py"))
     a = p.parse_args()
+    if a.out.exists() and not a.force:
+        print(f"refusing to overwrite {a.out}; pass --force or write to a *-check.csv path",
+              file=sys.stderr, flush=True)
+        return 2
 
-    work = Path(f"/tmp/opencode/multistart-{a.dataset.name}")
+    work = a.out.parent / "multistart" / a.dataset.name
     work.mkdir(parents=True, exist_ok=True)
     history: list[dict] = []
     previous: tuple[float, float] | None = None

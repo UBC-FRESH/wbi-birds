@@ -28,6 +28,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--force", action="store_true",
+                        help="overwrite an existing prime output (default: refuse)")
     parser.add_argument("--record", type=Path, default=None)
     parser.add_argument("--iterations", nargs="+", type=int,
                         default=[1_000_000, 2_000_000, 4_000_000, 8_000_000, 16_000_000])
@@ -42,6 +44,10 @@ def main() -> int:
                         help="level from the last completed rung when resuming")
     parser.add_argument("--previous-objective", type=float, default=None)
     args = parser.parse_args()
+    if args.out.exists() and not args.force:
+        print(f"refusing to overwrite {args.out}; pass --force or write to a *-check.csv path",
+              file=sys.stderr, flush=True)
+        return 2
 
     history: list[dict] = []
     previous: tuple[float, float] | None = (
@@ -53,7 +59,9 @@ def main() -> int:
     final_schedule: Path | None = None
 
     for iterations in args.iterations:
-        rung = Path(f"/tmp/opencode/prime-rung-{args.dataset.name}-{iterations}.csv")
+        rung_dir = args.out.parent / "rungs"
+        rung_dir.mkdir(parents=True, exist_ok=True)
+        rung = rung_dir / f"prime-rung-{args.dataset.name}-{iterations}.csv"
         command = [
             sys.executable, str(args.prime_script),
             "--dataset", str(args.dataset), "--iterations", str(iterations),

@@ -370,3 +370,13 @@ Issue #35.
 - Added `--reuse` so a resumed run can assemble from existing point CSVs.
 - TSA41 frontiers re-run on the corrected guild accounts; 0.80-0.99 retained, 1.00 reported
   infeasible.
+
+## 2026-11-22 — Prime runners refuse to overwrite; campaign runner is idempotent
+
+- `scripts/prime_until_converged.py` and `scripts/multistart_prime.py` refuse to overwrite an
+  existing `--out` unless `--force`. A cancelled convergence run was about to replace the
+  staged primes used by the completed five-TSA campaign.
+- Rung and multistart work directories now live under the output parent, not `/tmp/opencode`,
+  so a server restart does not discard the intermediate schedules.
+- `campaigns/.../dual/run-campaign-parallel.sh` skips a point CSV that already has both modes
+  and both attainments; the 40/40 campaign completes as a no-op instead of rerunning.
