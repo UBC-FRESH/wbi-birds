@@ -97,7 +97,7 @@ if __name__ == "__main__":
                     continue
                 total = float(bio[MAXR, MAXR])
                 agec = float(age[MAXR, MAXR])
-                m.update({"sc_biomass": total, "sc_age": agec, "sc_year": yr})
+                m.update({"sc_biomass": total, "sc_age": agec})
                 recs.append(m)
                 idxs.append(idx)
                 ok += 1
