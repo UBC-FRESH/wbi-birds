@@ -83,7 +83,7 @@ def landbase() -> dict:
 
 def fits() -> dict:
     base = json.loads((CAMPAIGNS / "bird-fits/knn-v0-nine-species-log.json").read_text())
-    spatial = json.loads((CAMPAIGNS / "bird-fits/knn-v0-nine-species-spatial-local.json").read_text())
+    spatial = json.loads((CAMPAIGNS / "bird-fits/scanfi-240m-nine-species-spatial.json").read_text())
     species = []
     for code, label in SPECIES.items():
         asp = base["species"][code]
@@ -113,8 +113,8 @@ def fits() -> dict:
             "definition": base.get("definition"), "link": base.get("link"),
             "covariate_form": base.get("covariate_form"),
             "aspatial": "log(abundance) ~ log1p(softwood volume) + log1p(hardwood volume) + age",
-            "spatial": "same, plus pct_forest_1km + edge_1km + pct_early_500m (local window)",
-            "note": "Fitted to kNN v0 checklists (819,302; 755,362 retained). Raw eBird records are never exposed.",
+            "spatial": "same, plus SCANFI 240 m forest + edge + early-seral fractions in a 1.92 km window",
+            "note": "Spatial fit: 604,935 checklists from 2018-2026 with SCANFI 2020/2025 metrics; aspatial curves from the kNN v0 fit. Raw eBird records are never exposed.",
         },
         "species": species,
     }
@@ -128,7 +128,7 @@ def read_rows(path: Path) -> list[dict]:
 def frontiers() -> dict:
     """Campaign points if present, otherwise the TSA41/GCKI pilot."""
     points: list[dict] = []
-    campaign_files = sorted(p for p in CAMPAIGNS.glob("dual/tsa*-multi-s*.csv")
+    campaign_files = sorted(p for p in CAMPAIGNS.glob("dual-scanfi-240m/tsa*-multi-s42-*.csv")
                             if "schedules" not in p.name)
     best: dict[tuple, dict] = {}
     for path in campaign_files:
@@ -136,7 +136,7 @@ def frontiers() -> dict:
             if "tsa" not in row:
                 continue
             tsa = row["tsa"]
-            base_path = CAMPAIGNS / f"dual/{tsa}-baselines.json"
+            base_path = CAMPAIGNS / f"dual-scanfi-240m/{tsa}-baselines.json"
             if not base_path.exists():
                 continue
             base = json.loads(base_path.read_text())
@@ -160,7 +160,7 @@ def frontiers() -> dict:
 
     if not points:
         baseline = {"aspatial": 1643203.0, "spatial": 2035129.0}
-        pilot = CAMPAIGNS / "dual/tsa41-gockin.csv"
+        pilot = CAMPAIGNS / "dual-scanfi-240m/tsa41-multi-s42-gockin.csv"
         if pilot.exists():
             for row in read_rows(pilot):
                 att = float(row["bird_p20"]) / baseline[row["mode"]]
@@ -182,41 +182,36 @@ def frontiers() -> dict:
                           "harvest_M_m3_yr": float(row["harvest_realized_m3_yr"]),
                           "seed": int(row["seed"])})
     impact = []
-    impact_file = CAMPAIGNS / "dual/tsa41-impact.csv"
+    impact_file = CAMPAIGNS / "dual-scanfi-240m/tsa41-impact.csv"
     if impact_file.exists():
         for row in read_rows(impact_file):
             impact.append({"species": row["species"],
                            "harvest_M_m3_yr": float(row["harvest_M_m3_yr"]),
                            "aspatial_pct": float(row["aspatial_pct"]),
                            "spatial_pct": float(row["spatial_pct"]),
-                           "sign_flip": row["sign_flip"].lower() == "true"})
+                           "sign_flip": (float(row["aspatial_pct"]) * float(row["spatial_pct"]) < 0)})
     guild_points = []
-    for path in sorted(CAMPAIGNS.glob("dual/tsa*-*-frontier.csv")):
-        for row in read_rows(path):
-            if "attainment_target" not in row:
-                continue
-            guild_points.append({
-                "tsa": row["tsa"], "bird": row["bird"], "mode": row["mode"],
-                "target_attainment": float(row["attainment_target"]),
-                "attainment": round(float(row["bird_p20"]) / float(row["baseline"]), 4),
-                "epsilon_p20": float(row["epsilon_p20"]),
-                "bird_p20": float(row["bird_p20"]),
-                "harvest_M_m3_yr": float(row["harvest_realized_m3_yr"]),
-                "deficit": round(float(row["epsilon_p20"]) - float(row["bird_p20"]), 1),
-            })
     guild_response = []
-    response_path = CAMPAIGNS / "dual/tsa41-guild-response.csv"
+    response_path = CAMPAIGNS / "dual-scanfi-240m/tsa41-guild-response.csv"
     if response_path.exists():
         for row in read_rows(response_path):
             if row.get("guild") not in {"mature_conifer", "mixedwood", "early_seral", "cavity"}:
                 continue
+            if not row["schedule"].startswith("aspatial-"):
+                continue
+            attainment = float(row["schedule"].split("-")[1])
+            guild_points.append({
+                "tsa": "tsa41", "bird": row["guild"], "mode": "aspatial",
+                "target_attainment": attainment, "attainment": attainment,
+                "harvest_M_m3_yr": float(row["harvest"]),
+            })
             guild_response.append({
                 "tsa": "tsa41",
                 "bird": row["guild"],
                 "harvest_M_m3_yr": float(row["harvest"]),
                 "aspatial_pct": 100.0 * float(row["aspatial"]),
                 "spatial_pct": 100.0 * float(row["spatial"]),
-                "attainment": float(row.get("attainment", 0)),
+                "attainment": attainment,
             })
 
     return {
@@ -227,8 +222,8 @@ def frontiers() -> dict:
         "verdict": {
             "rule": "aspatial preferred if |delta harvest| <= 2% at equal relative attainment",
             "result": ("pilot: aspatial rejected (worst 105%)" if not campaign_files else
-                       "full grid: aspatial rejected; 28 feasible pairs, median |delta harvest| 6.0%, "
-                       "worst 52.2%; sign and magnitude vary by TSA and species"),
+                       "full grid: aspatial rejected; 29 feasible pairs, median |delta harvest| 9.3%, "
+                       "worst 43.8%; aspatial allows more harvest in 17 pairs, spatial in 2, 10 tied"),
         },
     }
 
