@@ -33,11 +33,11 @@ TSRS = {
 }
 THRESHOLDS = {"41": 50, "40": 50, "24": 50, "16": 67, "08": 93}
 GEOM = {
-    "41": "/tmp/opencode/rebuild/tsa41/data/vri_vclr1p_checkpoint7.feather",
-    "16": "/tmp/opencode/rebuild/tsa16/data/vri_vclr1p_checkpoint7.feather",
-    "40": "/tmp/opencode/rebuild/tsa40/data/vri_vclr1p_checkpoint7.feather",
+    "41": "/srv/shared-data/gep/wbi-birds/femic/external/femic-tsa41-instance/data/ria_vri_vclr1p_checkpoint7.feather",
+    "16": "/srv/shared-data/gep/wbi-birds/femic/external/femic-tsa16-instance/data/ria_vri_vclr1p_checkpoint7.feather",
+    "40": "/srv/shared-data/gep/wbi-birds/femic/external/femic-tsa40-instance/data/ria_vri_vclr1p_checkpoint7.feather",
     "08": "/srv/shared-data/gep/wbi-birds/femic/external/femic-tsa08-instance/data/ria_vri_vclr1p_checkpoint7.feather",
-    "24": "/tmp/opencode/tsa24-checkpoint7.feather",
+    "24": "/srv/shared-data/gep/wbi-birds/femic/external/femic-tsa24-instance/data/ria_vri_vclr1p_checkpoint7.feather",
 }
 SPECIES = {
     "rebnut": "Red-breasted Nuthatch", "borchi2": "Boreal Chickadee", "gockin": "Golden-crowned Kinglet",
@@ -204,9 +204,24 @@ def frontiers() -> dict:
                 "harvest_M_m3_yr": float(row["harvest_realized_m3_yr"]),
                 "deficit": round(float(row["epsilon_p20"]) - float(row["bird_p20"]), 1),
             })
+    guild_response = []
+    response_path = CAMPAIGNS / "dual/tsa41-guild-response.csv"
+    if response_path.exists():
+        for row in read_rows(response_path):
+            if row.get("guild") not in {"mature_conifer", "mixedwood", "early_seral", "cavity"}:
+                continue
+            guild_response.append({
+                "bird": row["guild"],
+                "harvest_M_m3_yr": float(row["harvest"]),
+                "aspatial_pct": 100.0 * float(row["aspatial"]),
+                "spatial_pct": 100.0 * float(row["spatial"]),
+                "attainment": float(row.get("attainment", 0)),
+            })
+
     return {
         "status": "full campaign" if campaign_files and points else "pilot",
         "guild_frontier": guild_points,
+        "guild_response": guild_response,
         "points": points, "seeds": seeds, "impact": impact,
         "verdict": {
             "rule": "aspatial preferred if |delta harvest| <= 2% at equal relative attainment",

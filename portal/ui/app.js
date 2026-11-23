@@ -205,11 +205,12 @@ function renderTradeoffs() {
   const fr = state.frontiers;
   const pts = fr.points;
   const guildPts = fr.guild_frontier || [];
+  const guildResponse = fr.guild_response || [];
   const guilds = [...new Set(guildPts.map(p => p.bird))].sort();
   $("#tradeoff-status").innerHTML = fr.status === "pilot"
     ? `<b>Pilot data.</b> These points are the TSA41 / GCKI pilot.`
     : `<b>Campaign data.</b> ${pts.length} points across ${[...new Set(pts.map(p => p.tsa))].length} TSAs and ${[...new Set(pts.map(p => p.bird))].length} species, two attainments, two models. `
-      + (guildPts.length ? `Plus ${guilds.length} fine guild frontiers for TSA41 (${guilds.map(g => g.replaceAll("_", " ")).join(", ")}).` : "");
+      + (guildPts.length ? `Plus ${guilds.length} guild response curves for TSA41 (${guilds.map(g => g.replaceAll("_", " ")).join(", ")}).` : "");
 
   const tsas = [...new Set(pts.map(p => p.tsa))].sort();
   const speciesList = [...new Set(pts.map(p => p.bird))].sort();
@@ -230,6 +231,32 @@ function renderTradeoffs() {
   function draw() {
     const tsa = tsaSel.value, bird = birdSel.value;
     const isGuild = guilds.includes(bird);
+    if (isGuild && guildResponse.length) {
+      const card = document.querySelector("#chart-frontier").closest(".card");
+      const h3 = card && card.querySelector("h3");
+      if (h3) h3.textContent = "Guild response";
+      const resp = guildResponse.filter(p => p.bird === bird)
+        .sort((a, b) => a.harvest_M_m3_yr - b.harvest_M_m3_yr);
+      const c = chart("chart-frontier");
+      c.setOption({
+        grid: { left: 110, right: 28, top: 34, bottom: 42 },
+        tooltip: { trigger: "axis", valueFormatter: v => `${Number(v).toFixed(1)}%` },
+        legend: { data: ["aspatial", "spatial"], top: 0, textStyle: baseText },
+        xAxis: { type: "value", name: "harvest (M m³/yr)", nameLocation: "middle", nameGap: 28,
+                 axisLabel: baseText, splitLine: { lineStyle: { color: "#eee9dd" } } },
+        yAxis: { type: "value", name: "guild (% baseline)", axisLabel: baseText,
+                 splitLine: { lineStyle: { color: "#eee9dd" } } },
+        series: [
+          { name: "aspatial", type: "line", data: resp.map(p => [p.harvest_M_m3_yr, p.aspatial_pct]),
+            lineStyle: { color: PALETTE.aspatial, width: 2.2 }, itemStyle: { color: PALETTE.aspatial }, symbolSize: 7 },
+          { name: "spatial", type: "line", data: resp.map(p => [p.harvest_M_m3_yr, p.spatial_pct]),
+            lineStyle: { color: PALETTE.spatial, width: 2.2 }, itemStyle: { color: PALETTE.spatial }, symbolSize: 7 },
+        ],
+      });
+      $("#frontier-table").innerHTML = `<table><thead><tr><th>harvest</th><th class="num">aspatial</th><th class="num">spatial</th></tr></thead><tbody>
+        ${resp.map(p => `<tr><td>${p.harvest_M_m3_yr.toFixed(2)}</td><td class="num">${p.aspatial_pct.toFixed(1)}%</td><td class="num">${p.spatial_pct.toFixed(1)}%</td></tr>`).join("")}</tbody></table>`;
+      return;
+    }
     const sel = isGuild ? guildPts.filter(p => p.tsa === tsa && p.bird === bird)
                         : pts.filter(p => p.tsa === tsa && p.bird === bird);
     const modes = ["aspatial", "spatial"];
@@ -291,7 +318,7 @@ function renderTradeoffs() {
     <p class="note" style="margin:8px 0"><b>Result:</b> ${fr.verdict.result}</p>
     <p class="note" style="margin:8px 0"><b>Sign flips under one identical schedule:</b> ${flips.length ? flips.join(", ") : "none"}.</p>
     <p class="note" style="margin:8px 0">At matched relative attainment the two models can disagree in magnitude and in sign. The spatial model prices edge and early-seral habitat loss on retained neighbouring forest; the aspatial model prices only the harvested stand.</p>
-    <p class="note" style="margin:8px 0"><b>TSA41 guild frontiers:</b> the floor binds under both models for mature conifer (up to <b>35%</b> more aspatial harvest, peak at 92%) and only under the aspatial model for mixedwood (49% at full attainment). Early seral and cavity stay at the harvest ceiling because their floors are slack, not because harvest has no effect: under one moderate schedule five species gain and four lose, so the result is a redistribution, not a community-wide loss.</p>`;
+    <p class="note" style="margin:8px 0"><b>TSA41 guild responses:</b> mature conifer declines with harvest under both models (aspatial 95→85%, spatial 100→80%); mixedwood diverges (aspatial 97→92%, spatial 102→107%); early seral and cavity rise (aspatial 120→124% and 123→129%; spatial 99→108% and 105→130%). Only mature conifer shows a tradeoff in this range.</p>`;
   draw();
 }
 
