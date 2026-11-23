@@ -237,14 +237,20 @@ function renderTradeoffs() {
       if (h3) h3.textContent = "Guild response";
       const resp = guildResponse.filter(p => p.bird === bird)
         .sort((a, b) => a.harvest_M_m3_yr - b.harvest_M_m3_yr);
+      const xs = resp.map(p => p.harvest_M_m3_yr);
+      const ys = resp.flatMap(p => [p.aspatial_pct, p.spatial_pct]);
+      const xmin = Math.max(0, Math.floor((Math.min(...xs) - 0.02) * 100) / 100);
+      const xmax = Math.ceil((Math.max(...xs) + 0.02) * 100) / 100;
+      const ymin = Math.max(0, Math.floor(Math.min(...ys) - 4));
+      const ymax = Math.ceil(Math.max(...ys) + 4);
       const c = chart("chart-frontier");
       c.setOption({
         grid: { left: 110, right: 28, top: 34, bottom: 42 },
         tooltip: { trigger: "axis", valueFormatter: v => `${Number(v).toFixed(1)}%` },
         legend: { data: ["aspatial", "spatial"], top: 0, textStyle: baseText },
-        xAxis: { type: "value", name: "harvest (M m³/yr)", nameLocation: "middle", nameGap: 28,
+        xAxis: { type: "value", min: xmin, max: xmax, name: "harvest (M m³/yr)", nameLocation: "middle", nameGap: 28,
                  axisLabel: baseText, splitLine: { lineStyle: { color: "#eee9dd" } } },
-        yAxis: { type: "value", name: "guild (% baseline)", axisLabel: baseText,
+        yAxis: { type: "value", min: ymin, max: ymax, name: "guild (% baseline)", axisLabel: baseText,
                  splitLine: { lineStyle: { color: "#eee9dd" } } },
         series: [
           { name: "aspatial", type: "line", data: resp.map(p => [p.harvest_M_m3_yr, p.aspatial_pct]),
@@ -254,7 +260,7 @@ function renderTradeoffs() {
         ],
       });
       $("#frontier-table").innerHTML = `<table><thead><tr><th>harvest</th><th class="num">aspatial</th><th class="num">spatial</th></tr></thead><tbody>
-        ${resp.map(p => `<tr><td>${p.harvest_M_m3_yr.toFixed(2)}</td><td class="num">${p.aspatial_pct.toFixed(1)}%</td><td class="num">${p.spatial_pct.toFixed(1)}%</td></tr>`).join("")}</tbody></table>`;
+        ${[...new Map(resp.map(p => [p.harvest_M_m3_yr, p])).values()].map(p => `<tr><td>${p.harvest_M_m3_yr.toFixed(2)}</td><td class="num">${p.aspatial_pct.toFixed(1)}%</td><td class="num">${p.spatial_pct.toFixed(1)}%</td></tr>`).join("")}</tbody></table>`;
       return;
     }
     const sel = isGuild ? guildPts.filter(p => p.tsa === tsa && p.bird === bird)
