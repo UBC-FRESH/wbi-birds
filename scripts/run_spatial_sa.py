@@ -152,7 +152,7 @@ def main() -> int:
         return {int(b): year_for(c) for b, c in schedule.items() if year_for(c) is not None}
 
     for epsilon in args.epsilons:
-        targets_file = Path(f"/tmp/opencode/dual-target-{tsa}-{args.mode}-{epsilon:.0f}.yaml")
+        targets_file = Path(f"/tmp/opencode/dual-target-{tsa}-{args.mode}-{args.out.stem}-{epsilon:.0f}.yaml")
         targets_file.parent.mkdir(parents=True, exist_ok=True)
         targets_file.write_text(target_yaml(args.bird, epsilon, args.pull, args.band))
         targets = load_targets(targets_file)
