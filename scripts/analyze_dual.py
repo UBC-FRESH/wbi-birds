@@ -29,6 +29,7 @@ def main() -> int:
                         help="keep only pairs where both modes meet the floor")
     parser.add_argument("--deficit-tolerance", type=float, default=0.002,
                         help="relative deficit allowed when calling a point feasible")
+    parser.add_argument("--pairs-out", type=Path, default=None)
     args = parser.parse_args()
 
     best: dict[tuple, dict] = {}
@@ -60,6 +61,7 @@ def main() -> int:
     print(f"{'tsa':6s} {'bird':8s} {'target':>6s} {'asp':>7s} {'sp':>7s} {'delta%':>8s} "
           f"{'asp deficit':>11s} {'sp deficit':>10s}")
     deltas: list[float] = []
+    pair_rows: list[dict] = []
     for (tsa, bird, target), modes in sorted(pairs.items()):
         if "aspatial" not in modes or "spatial" not in modes:
             continue
@@ -74,9 +76,15 @@ def main() -> int:
         ha, hs = float(a["harvest_realized_m3_yr"]), float(s["harvest_realized_m3_yr"])
         delta = 100.0 * (ha - hs) / hs if hs else float("inf")
         deltas.append(abs(delta))
+        pair_rows.append(dict(tsa=tsa, bird=bird, target=target, aspatial=ha, spatial=hs,
+                              delta_pct=delta, aspatial_deficit=da, spatial_deficit=ds))
         print(f"{tsa:6s} {bird:8s} {target:6.2f} {ha:7.3f} {hs:7.3f} {delta:8.1f} "
               f"{da:11.0f} {ds:10.0f}")
 
+    if args.pairs_out is not None:
+        import pandas as pd
+        args.pairs_out.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(pair_rows).to_csv(args.pairs_out, index=False)
     if not deltas:
         print("no matched pairs")
         return 0
