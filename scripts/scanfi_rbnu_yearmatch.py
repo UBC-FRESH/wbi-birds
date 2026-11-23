@@ -77,33 +77,47 @@ if __name__ == "__main__":
 
     recs, idxs = [], []
     t0 = time.time()
-    for yr, grp in frame.groupby("sc_year"):
-        age_p, bio_p = LAYERS[yr]
-        print("reading", yr, "for", len(grp), "rows", flush=True)
-        with rasterio.open(age_p) as a, rasterio.open(bio_p) as b:
-            tr = Transformer.from_crs("EPSG:4326", a.crs, always_xy=True)
-            xs, ys = tr.transform(grp.lon.to_numpy(), grp.lat.to_numpy())
-            cols = np.floor((xs - a.transform.c) / a.transform.a).astype(int)
-            rows = np.floor((ys - a.transform.f) / a.transform.e).astype(int)
-            ok = 0
-            for idx, r, c in zip(grp.index, rows, cols):
-                if r < MAXR or c < MAXR or r >= a.height - MAXR or c >= a.width - MAXR:
-                    continue
-                w = Window(c - MAXR, r - MAXR, 2 * MAXR + 1, 2 * MAXR + 1)
-                age = a.read(1, window=w)
-                bio = b.read(1, window=w)
-                m = metrics(age, bio, r, c)
-                if m is None:
-                    continue
-                total = float(bio[MAXR, MAXR])
-                agec = float(age[MAXR, MAXR])
-                m.update({"sc_biomass": total, "sc_age": agec})
-                recs.append(m)
-                idxs.append(idx)
-                ok += 1
-                if ok % 1000 == 0:
-                    print(" ", yr, ok, round(time.time() - t0), flush=True)
-            print(" ", yr, "kept", ok, flush=True)
+    age25_p, bio25_p = LAYERS[2025]
+    with rasterio.open(age25_p) as a25, rasterio.open(bio25_p) as b25:
+        for yr, grp in frame.groupby("sc_year"):
+            age_p, bio_p = LAYERS[yr]
+            print("reading", yr, "for", len(grp), "rows", flush=True)
+            with rasterio.open(age_p) as a, rasterio.open(bio_p) as b:
+                tr = Transformer.from_crs("EPSG:4326", a.crs, always_xy=True)
+                xs, ys = tr.transform(grp.lon.to_numpy(), grp.lat.to_numpy())
+                cols = np.floor((xs - a.transform.c) / a.transform.a).astype(int)
+                rows = np.floor((ys - a.transform.f) / a.transform.e).astype(int)
+                ok = 0
+                for idx, r, c in zip(grp.index, rows, cols):
+                    if r < MAXR or c < MAXR or r >= a.height - MAXR or c >= a.width - MAXR:
+                        continue
+                    w = Window(c - MAXR, r - MAXR, 2 * MAXR + 1, 2 * MAXR + 1)
+                    age = a.read(1, window=w)
+                    bio = b.read(1, window=w)
+                    m = metrics(age, bio, r, c)
+                    if m is None:
+                        continue
+                    total = float(bio[MAXR, MAXR])
+                    agec = float(age[MAXR, MAXR])
+                    m.update({"sc_biomass": total, "sc_age": agec})
+                    # Same-row 2025 comparison, so the effect of matching can be
+                    # separated from sampling and fold differences.
+                    if yr == 2025:
+                        m25 = {k: v for k, v in m.items()}
+                    else:
+                        age25 = a25.read(1, window=w)
+                        bio25 = b25.read(1, window=w)
+                        m25 = metrics(age25, bio25, r, c)
+                        m25.update({"sc_biomass": float(bio25[MAXR, MAXR]),
+                                    "sc_age": float(age25[MAXR, MAXR])})
+                    for k, v in m25.items():
+                        m[k + "_2025"] = v
+                    recs.append(m)
+                    idxs.append(idx)
+                    ok += 1
+                    if ok % 1000 == 0:
+                        print(" ", yr, ok, round(time.time() - t0), flush=True)
+                print(" ", yr, "kept", ok, flush=True)
 
     md = pd.DataFrame(recs, index=idxs)
     frame = frame.join(md)

@@ -73,6 +73,7 @@ def main() -> int:
     ap.add_argument("--radii", default="60m,120m,240m,510m,1020m")
     ap.add_argument("--seeds", type=int, default=20)
     ap.add_argument("--year-term", action="store_true")
+    ap.add_argument("--suffix", default="", help="covariate suffix, e.g. _2025")
     ap.add_argument("--out", type=Path)
     args = ap.parse_args()
 
@@ -82,7 +83,8 @@ def main() -> int:
     base = "log_soft + log_hard + age" + yt
     models = {"base": base}
     for name in args.radii.split(","):
-        models[name] = (base + f" + forest_{name} + edge_{name} + early_{name}")
+        models[name] = (base + f" + forest_{name}{args.suffix} + edge_{name}{args.suffix}"
+                        + f" + early_{name}{args.suffix}")
 
     rows = []
     for wname in args.windows.split(","):
@@ -97,7 +99,7 @@ def main() -> int:
         b = res["base"]
         for k in models:
             gain = b - res[k]
-            row = dict(window=wname, model=k, n=len(d),
+            row = dict(window=wname, model=k + args.suffix, n=len(d),
                        cv_mean=res[k].mean(), cv_sd=res[k].std(ddof=1),
                        gain_mean=gain.mean(), gain_sd=gain.std(ddof=1))
             rows.append(row)
