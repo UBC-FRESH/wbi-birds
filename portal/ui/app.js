@@ -229,13 +229,16 @@ function renderTradeoffs() {
   if (birds.includes("gockin")) birdSel.value = "gockin";
 
   function draw() {
-    const tsa = tsaSel.value, bird = birdSel.value;
+    const bird = birdSel.value;
     const isGuild = guilds.includes(bird);
+    if (isGuild) tsaSel.value = "tsa41";
+    const tsa = tsaSel.value;
+    tsaSel.disabled = isGuild;
     if (isGuild && guildResponse.length) {
       const card = document.querySelector("#chart-frontier").closest(".card");
       const h3 = card && card.querySelector("h3");
-      if (h3) h3.textContent = "Guild response";
-      const resp = guildResponse.filter(p => p.bird === bird)
+      if (h3) h3.textContent = "Guild response (TSA41)";
+      const resp = guildResponse.filter(p => p.bird === bird && p.tsa === tsa)
         .sort((a, b) => a.harvest_M_m3_yr - b.harvest_M_m3_yr);
       const xs = resp.map(p => p.harvest_M_m3_yr);
       const ys = resp.flatMap(p => [p.aspatial_pct, p.spatial_pct]);
