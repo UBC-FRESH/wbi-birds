@@ -211,7 +211,7 @@ def frontiers() -> dict:
         "verdict": {
             "rule": "aspatial preferred if |delta harvest| <= 2% at equal relative attainment",
             "result": ("pilot: aspatial rejected (worst 105%)" if not campaign_files else
-                       "full grid: aspatial rejected; 29 feasible pairs, median |delta harvest| 6.3%, "
+                       "full grid: aspatial rejected; 28 feasible pairs, median |delta harvest| 6.0%, "
                        "worst 52.2%; sign and magnitude vary by TSA and species"),
         },
     }
