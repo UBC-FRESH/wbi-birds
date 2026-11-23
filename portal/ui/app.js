@@ -260,7 +260,7 @@ function renderTradeoffs() {
         ],
       });
       $("#frontier-table").innerHTML = `<table><thead><tr><th>harvest</th><th class="num">aspatial</th><th class="num">spatial</th></tr></thead><tbody>
-        ${[...new Map(resp.map(p => [p.harvest_M_m3_yr, p])).values()].map(p => `<tr><td>${p.harvest_M_m3_yr.toFixed(2)}</td><td class="num">${p.aspatial_pct.toFixed(1)}%</td><td class="num">${p.spatial_pct.toFixed(1)}%</td></tr>`).join("")}</tbody></table>`;
+        ${[...new Map(resp.map(p => [p.harvest_M_m3_yr.toFixed(2), p])).values()].map(p => `<tr><td>${p.harvest_M_m3_yr.toFixed(2)}</td><td class="num">${p.aspatial_pct.toFixed(1)}%</td><td class="num">${p.spatial_pct.toFixed(1)}%</td></tr>`).join("")}</tbody></table>`;
       return;
     }
     const sel = isGuild ? guildPts.filter(p => p.tsa === tsa && p.bird === bird)
