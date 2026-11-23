@@ -211,6 +211,7 @@ def frontiers() -> dict:
             if row.get("guild") not in {"mature_conifer", "mixedwood", "early_seral", "cavity"}:
                 continue
             guild_response.append({
+                "tsa": "tsa41",
                 "bird": row["guild"],
                 "harvest_M_m3_yr": float(row["harvest"]),
                 "aspatial_pct": 100.0 * float(row["aspatial"]),
