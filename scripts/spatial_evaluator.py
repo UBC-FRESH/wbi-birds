@@ -22,7 +22,7 @@ RES = 250.0
 EARLY_AGE = 40.0
 MATURE_AGE = 80.0
 EDGE_WINDOW = 8
-EARLY_WINDOW = 2
+EARLY_WINDOW = 8
 
 
 def classify(age: np.ndarray) -> np.ndarray:
