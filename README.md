@@ -68,3 +68,18 @@ freshforge run workflows/wbi_pipeline.yaml --workdir . --namespace tsa40 \
 
 MIT. Cite via `CITATION.cff` (`v1.0.0`); the Zenodo DOI is added once the
 Zenodo–GitHub integration is enabled for this repository.
+
+
+## Scenario execution (required)
+
+All ws4 scenario runs go through FreshForge:
+
+```bash
+freshforge run workflows/ws4_evenflow_convergence.yaml --workdir . \
+  --evidence results/workflow/ws4-evenflow/evidence.json
+```
+
+The workflow runs the aspirational level pull, then the nonlinear even-flow target,
+then an optional bird floor, and stops only when the objective and harvest plateau.
+Direct `run_spatial_sa.py` execution is blocked unless `WBI_ALLOW_DIRECT=1` is set
+for provider development.
