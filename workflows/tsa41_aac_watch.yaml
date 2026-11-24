@@ -1,0 +1,36 @@
+workflow:
+  id: tsa41_aac_watch
+  name: TSA41 AAC minimum harvest watcher
+  description: >
+    Minimal watcher: one minimum harvest target per period at the TSA41 TSR AAC
+    (1,791,846 m3/yr x 10-year period = 17,918,460), nonlinear penalty, no even-flow
+    and no bird floor. Runs in chunks and reports the plateau trace.
+nodes:
+  - id: aac_watch
+    provider: wbi.ws4_evenflow_convergence
+    outputs:
+      convergence: convergence_record
+    parameters:
+      dataset: /srv/shared-data/gep/wbi-birds/campaigns/ws4-five-tsa-2026-11/full-landscape/tsa41
+      mode: aspatial
+      tsa: tsa41
+      bird: ""
+      epsilon: null
+      aspirational: 17918460
+      level_shape: non_linear
+      level_weight: 1.0
+      no_evenflow: true
+      chunk_iterations: 50000
+      window: 10
+      tolerance: 0.0001
+      harvest_tolerance: 0.001
+      max_iterations: 2000000
+      seed: 42
+      initial: /srv/shared-data/gep/wbi-birds/campaigns/ws4-five-tsa-2026-11/prime/tsa41-prime.csv
+      out: results/workflow/tsa41-aac-watch
+      python: /srv/shared-data/gep/wbi-birds/tmp/ws4-env/bin/python
+      driver: /srv/shared-data/gep/wbi-birds/reference/wbi-main/scripts/ws4_evenflow_converge.py
+    artifacts:
+      result: results/workflow/tsa41-aac-watch/result.json
+      trace: results/workflow/tsa41-aac-watch/trace-level.jsonl
+      schedule: results/workflow/tsa41-aac-watch/schedule-level.csv

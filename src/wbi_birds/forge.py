@@ -154,9 +154,10 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
         outputs=("convergence",),
         parameters=(
             "dataset", "geometry", "fits", "mode", "tsa", "bird", "epsilon",
-            "aspirational", "band", "flow_weight", "chunk_iterations", "window",
-            "tolerance", "harvest_tolerance", "max_iterations", "seed", "initial",
-            "out", "python", "driver",
+            "aspirational", "band", "flow_weight", "level_shape", "level_weight",
+            "no_evenflow", "chunk_iterations", "window", "tolerance",
+            "harvest_tolerance", "max_iterations", "seed", "initial", "out",
+            "python", "driver",
         ),
         artifacts=("trace", "schedule", "result", "log"),
     ),
@@ -271,10 +272,13 @@ class WbiProvider:
         for key in ("geometry", "fits", "initial"):
             if params.get(key):
                 cmd += [f"--{key.replace('_', '-')}", str(params[key])]
-        for key in ("bird", "epsilon", "aspirational", "band", "flow_weight", "chunk_iterations",
-                    "window", "tolerance", "harvest_tolerance", "max_iterations", "seed"):
+        for key in ("bird", "epsilon", "aspirational", "band", "flow_weight",
+                    "level_shape", "level_weight", "chunk_iterations", "window",
+                    "tolerance", "harvest_tolerance", "max_iterations", "seed"):
             if key in params and params[key] is not None and params[key] != "":
                 cmd += [f"--{key.replace('_', '-')}", str(params[key])]
+        if params.get("no_evenflow"):
+            cmd.append("--no-evenflow")
         env = os.environ.copy()
         env["PYTHONPATH"] = "/srv/shared-data/gep/ws4/ws4-gpu:" + env.get("PYTHONPATH", "")
         env["FRESHFORGE_RUN_ID"] = str(getattr(context, "run_id", "freshforge"))

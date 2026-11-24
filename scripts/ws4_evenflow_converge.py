@@ -29,12 +29,13 @@ STOCK = "feature.Yield.managed.Total"
 PERIOD_WIDTH = 10
 
 
-def target_text(aspirational, band, flow_weight, bird, epsilon, include_flow):
+def target_text(aspirational, band, flow_weight, bird, epsilon, include_flow,
+                level_shape='linear', level_weight=1.0):
     lines = ["targets:"]
     for period in range(1, 21):
         lines += [f"- account: {HARVEST}", f"  period_width: {PERIOD_WIDTH}",
-                  f"  minimum: {aspirational:.1f}", "  min_weight: 1.0",
-                  "  shape: linear", f"  period: {period}"]
+                  f"  minimum: {aspirational:.1f}", f"  min_weight: {level_weight:.6g}",
+                  f"  shape: {level_shape}", f"  period: {period}"]
     if include_flow:
         lines += [f"- account: {HARVEST}", "  period: 1", f"  period_width: {PERIOD_WIDTH}",
                   "  flow: even", "  flow_start_period: 1", "  flow_end_period: 20",
@@ -68,6 +69,9 @@ def main() -> int:
     ap.add_argument("--aspirational", type=float, default=200_000_000.0)
     ap.add_argument("--band", type=float, default=1.0)
     ap.add_argument("--flow-weight", type=float, default=10000.0)
+    ap.add_argument("--level-shape", choices=("linear", "non_linear"), default="linear")
+    ap.add_argument("--level-weight", type=float, default=1.0)
+    ap.add_argument("--no-evenflow", action="store_true")
     ap.add_argument("--chunk-iterations", type=int, default=50000)
     ap.add_argument("--window", type=int, default=10)
     ap.add_argument("--tolerance", type=float, default=1e-4)
@@ -86,7 +90,8 @@ def main() -> int:
 
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "targets-level40.yaml").write_text(
-        target_text(args.aspirational, args.band, args.flow_weight, None, None, False))
+        target_text(args.aspirational, args.band, args.flow_weight, None, None, False,
+                    args.level_shape, args.level_weight))
 
     accounts = [HARVEST, STOCK]
     if args.bird:
@@ -129,7 +134,8 @@ def main() -> int:
         target = args.out / f"target-{name}.yaml"
         target.write_text(target_text(args.aspirational, args.band, args.flow_weight,
                                       args.bird if use_bird else None,
-                                      args.epsilon if use_bird else None, include_flow))
+                                      args.epsilon if use_bird else None, include_flow,
+                                      args.level_shape, args.level_weight))
         targets = load_targets(target)
         kwargs = {}
         if spatial is not None and use_bird:
@@ -183,19 +189,23 @@ def main() -> int:
         print(json.dumps(stage_rec), flush=True)
         return current, converged, stage_rec
 
-    s1, ok1, _ = stage("level", False, False, initial)
-    s2, ok2, _ = stage("evenflow", True, False, s1)
-    if args.bird:
-        s3, ok3, last = stage("bird", True, True, s2)
+    s1, ok1, rec1 = stage("level", False, False, initial)
+    if args.no_evenflow:
+        ok2, ok3, last, final_schedule = True, True, rec1, "schedule-level.csv"
     else:
-        ok3, last = True, {"harvest": None, "bird": None, "iterations": 0, "objective": None}
+        s2, ok2, rec2 = stage("evenflow", True, False, s1)
+        if args.bird:
+            _s3, ok3, rec3 = stage("bird", True, True, s2)
+            last, final_schedule = rec3, "schedule-bird.csv"
+        else:
+            ok3, last, final_schedule = True, rec2, "schedule-evenflow.csv"
     result = {
         "tsa": args.tsa, "mode": args.mode, "bird": args.bird, "epsilon": args.epsilon,
         "converged": bool(ok1 and ok2 and ok3),
         "stages": stages,
         "harvest_M_m3_yr": last.get("harvest"),
         "bird_p20": last.get("bird"),
-        "schedule": str(args.out / ("schedule-bird.csv" if args.bird else "schedule-evenflow.csv")),
+        "schedule": str(args.out / final_schedule),
         "aspirational": args.aspirational, "band": args.band, "flow_weight": args.flow_weight,
         "chunk_iterations": args.chunk_iterations, "window": args.window,
         "tolerance": args.tolerance, "harvest_tolerance": args.harvest_tolerance,
