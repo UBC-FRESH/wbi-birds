@@ -1,121 +1,121 @@
 targets:
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 1
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 2
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 3
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 4
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 5
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 6
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 7
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 8
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 9
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 10
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 11
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 12
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 13
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 14
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 15
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 16
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 17
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 18
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 19
 - account: product.HarvestedVolume.managed.Total.CC
   period_width: 10
-  minimum: 17918460.0
+  minimum: 18000000.0
   min_weight: 1.0
   shape: non_linear
   period: 20

@@ -12,7 +12,7 @@ INDEX="$C/full-landscape/tsa41/cache/candidates-nonempty.npz"
 OUT=${1:-/srv/shared-data/gep/wbi-birds/reference/wbi-main/runs/tsa41-aac-staged}
 ITER1=${ITER1:-1000000}
 ITER2=${ITER2:-2000000}
-LEVEL2=${LEVEL2:-17918460}
+LEVEL2=${LEVEL2:-18000000}
 mkdir -p "$OUT"
 T2="$OUT/stage2-target.yaml"
 python3 - "$LEVEL2" "$T2" <<'PYTGT'
