@@ -30,6 +30,8 @@ jobs:
           ruff check src tests
       - name: Tests
         run: pytest -q
+      - name: FreshForge-only scenario policy
+        run: python scripts/check_scenario_runs.py
 
   examples:
     runs-on: ubuntu-latest

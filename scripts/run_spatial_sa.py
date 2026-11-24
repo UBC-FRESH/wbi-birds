@@ -1,4 +1,4 @@
-"""Dual campaign driver: aspatial vs spatial bird constraint on the resident SA.
+"""Dual campaign driver (legacy direct entry; blocked outside FreshForge): aspatial vs spatial bird constraint on the resident SA.
 
 Both modes share the same land base, target set, seed, and move machinery. In
 ``aspatial`` mode the bird floor is priced from the separable anticipation curves
@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import pickle
 import sys
 import time
@@ -36,6 +37,14 @@ STOCK = "feature.Yield.managed.Total"
 PERIOD_WIDTH = 10
 YEAR = 199  # period-20 end offset
 
+# Scenario runs are a FreshForge workflow. Direct invocation is allowed only for
+# provider development, via WBI_ALLOW_DIRECT=1.
+if not os.environ.get("FRESHFORGE_RUN_ID") and os.environ.get("WBI_ALLOW_DIRECT") != "1":
+    raise SystemExit(
+        "Direct scenario runs are disabled. Use "
+        "`freshforge run workflows/ws4_evenflow_convergence.yaml`."
+    )
+
 
 def year_for(chain) -> float | None:
     """Return the last harvest year at or before period 20, or None."""
@@ -48,7 +57,8 @@ def year_for(chain) -> float | None:
     return None if last is None else float(last)
 
 
-def target_yaml(bird: str, epsilon: float, pull: float, band: float) -> str:
+def target_yaml(bird: str, epsilon: float, pull: float, band: float,
+                include_flow: bool = True, flow_weight: float = 10000.0) -> str:
     lines = ["targets:"]
     for period in range(1, 21):
         lines += [
@@ -59,18 +69,21 @@ def target_yaml(bird: str, epsilon: float, pull: float, band: float) -> str:
             "  shape: linear",
             f"  period: {period}",
         ]
+    if include_flow:
+        lines += [
+            f"- account: {HARVEST}",
+            "  period: 1",
+            f"  period_width: {PERIOD_WIDTH}",
+            "  flow: even",
+            "  flow_start_period: 1",
+            "  flow_end_period: 20",
+            f"  minimum: {-band:.1f}",
+            f"  maximum: {band:.1f}",
+            f"  min_weight: {flow_weight:.1f}",
+            f"  max_weight: {flow_weight:.1f}",
+            "  shape: non_linear",
+        ]
     lines += [
-        f"- account: {HARVEST}",
-        "  period: 1",
-        f"  period_width: {PERIOD_WIDTH}",
-        "  flow: even",
-        "  flow_start_period: 1",
-        "  flow_end_period: 20",
-                f"  minimum: {-band:.1f}",
-        f"  maximum: {band:.1f}",
-        "  min_weight: 1000000000.0",
-        "  max_weight: 1000000000.0",
-        "  shape: non_linear",
         f"- account: feature.Bird.{bird}",
         f"  period_width: {PERIOD_WIDTH}",
         f"  minimum: {epsilon:.1f}",
@@ -92,6 +105,11 @@ def main() -> int:
     parser.add_argument("--pull", type=float, default=40e6)
     parser.add_argument("--band", type=float, default=5.0)
     parser.add_argument("--iterations", type=int, default=2_000_000)
+    parser.add_argument("--staged", action="store_true")
+    parser.add_argument("--stage1-iterations", type=int, default=200_000)
+    parser.add_argument("--stage2-iterations", type=int, default=200_000)
+    parser.add_argument("--flow-weight", type=float, default=10000.0)
+    parser.add_argument("--fixed-initial", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--mode", choices=("aspatial", "spatial"), required=True)
     parser.add_argument("--tsa", default=None)
@@ -151,36 +169,66 @@ def main() -> int:
     def spatial_schedule(schedule: dict) -> dict[int, float]:
         return {int(b): year_for(c) for b, c in schedule.items() if year_for(c) is not None}
 
+    kwargs = {}
+    if spatial is not None:
+        kwargs = {
+            "spatial_model": spatial,
+            "spatial_account": bird_account,
+            "spatial_period": 19,
+            "spatial_year": year_for,
+        }
+
     for epsilon in args.epsilons:
-        targets_file = Path(f"/tmp/opencode/dual-target-{tsa}-{args.mode}-{args.out.stem}-{epsilon:.0f}.yaml")
-        targets_file.parent.mkdir(parents=True, exist_ok=True)
-        targets_file.write_text(target_yaml(args.bird, epsilon, args.pull, args.band))
-        targets = load_targets(targets_file)
-
-        if spatial is not None:
-            spatial.reset(spatial_schedule(current))
-
-        state = BlockAccountState(
-            trajectory, state_blocks, accounts, years=200, period_width=PERIOD_WIDTH, skip_empty=False
-        )
         started = time.perf_counter()
-        kwargs = {}
-        if spatial is not None:
-            kwargs = {
-                "spatial_model": spatial,
-                "spatial_account": bird_account,
-                "spatial_period": 19,
-                "spatial_year": year_for,
-            }
-        schedule, objective = run_state_sa(
-            state,
-            index,
-            targets,
-            iterations=args.iterations,
-            initial=current or None,
-            seed=args.seed,
-            **kwargs,
-        )
+        if args.staged:
+            stage1_file = Path(f"/tmp/opencode/stage1-{tsa}-{args.mode}-{args.out.stem}-{epsilon:.0f}.yaml")
+            stage1_file.parent.mkdir(parents=True, exist_ok=True)
+            stage1_file.write_text(target_yaml(args.bird, epsilon, args.pull, args.band,
+                                               include_flow=False, flow_weight=args.flow_weight))
+            targets1 = load_targets(stage1_file)
+            if spatial is not None:
+                spatial.reset(spatial_schedule(current))
+            state1 = BlockAccountState(
+                trajectory, state_blocks, accounts, years=200, period_width=PERIOD_WIDTH, skip_empty=False
+            )
+            schedule1, _ = run_state_sa(
+                state1, index, targets1, iterations=args.stage1_iterations,
+                initial=current or None, seed=args.seed, **kwargs,
+            )
+            stage2_file = Path(f"/tmp/opencode/stage2-{tsa}-{args.mode}-{args.out.stem}-{epsilon:.0f}.yaml")
+            stage2_file.write_text(target_yaml(args.bird, epsilon, args.pull, args.band,
+                                               include_flow=True, flow_weight=args.flow_weight))
+            targets = load_targets(stage2_file)
+            if spatial is not None:
+                spatial.reset(spatial_schedule(schedule1))
+            state = BlockAccountState(
+                trajectory, state_blocks, accounts, years=200, period_width=PERIOD_WIDTH, skip_empty=False
+            )
+            schedule, objective = run_state_sa(
+                state, index, targets, iterations=args.stage2_iterations,
+                initial=schedule1, seed=args.seed, **kwargs,
+            )
+            iterations_used = args.stage1_iterations + args.stage2_iterations
+        else:
+            targets_file = Path(f"/tmp/opencode/dual-target-{tsa}-{args.mode}-{args.out.stem}-{epsilon:.0f}.yaml")
+            targets_file.parent.mkdir(parents=True, exist_ok=True)
+            targets_file.write_text(target_yaml(args.bird, epsilon, args.pull, args.band,
+                                                include_flow=True, flow_weight=args.flow_weight))
+            targets = load_targets(targets_file)
+            if spatial is not None:
+                spatial.reset(spatial_schedule(current))
+            state = BlockAccountState(
+                trajectory, state_blocks, accounts, years=200, period_width=PERIOD_WIDTH, skip_empty=False
+            )
+            schedule, objective = run_state_sa(
+                state, index, targets,
+                iterations=args.iterations,
+                initial=current or None,
+                seed=args.seed,
+                **kwargs,
+            )
+            iterations_used = args.iterations
+
         elapsed = time.perf_counter() - started
 
         harvest = state.period_totals[:, accounts.index(HARVEST)]
@@ -198,7 +246,8 @@ def main() -> int:
             "epsilon_p20": epsilon,
             "pull": args.pull,
             "band": args.band,
-            "iterations": args.iterations,
+            "iterations": iterations_used,
+            "staged": bool(args.staged),
             "seed": args.seed,
             "seconds": round(elapsed, 1),
             "objective": round(float(objective), 3),
@@ -218,7 +267,9 @@ def main() -> int:
                  for b, events in schedule.items() for t, o in events],
                 columns=["block_id", "treatment", "offset"],
             ).to_csv(args.schedule_out, index=False)
-        current = schedule
+
+        if not args.fixed_initial:
+            current = schedule
         print(
             f"  {args.mode} eps {epsilon/1e6:.3f}M -> harvest {row['harvest_realized_m3_yr']:.3f} "
             f"M m3/yr, {args.bird} p20 {bird_p20/1e6:.3f} M, obj {row['objective']:.4g}, "
