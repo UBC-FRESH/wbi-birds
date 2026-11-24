@@ -189,9 +189,11 @@ def main() -> int:
         s3, ok3, last = stage("bird", True, True, s2)
     else:
         ok3, last = True, {"harvest": None, "bird": None, "iterations": 0, "objective": None}
+    final_converged = bool(ok1) if args.no_evenflow else bool(ok2)
     result = {
         "tsa": args.tsa, "mode": args.mode, "bird": args.bird, "epsilon": args.epsilon,
-        "converged": bool(ok1 and ok2 and ok3),
+        "converged": final_converged,
+        "stage1_converged": bool(ok1),
         "stages": stages,
         "harvest_M_m3_yr": last.get("harvest"),
         "bird_p20": last.get("bird"),

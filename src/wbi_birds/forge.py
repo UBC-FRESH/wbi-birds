@@ -154,9 +154,12 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
         outputs=("convergence",),
         parameters=(
             "dataset", "geometry", "fits", "mode", "tsa", "bird", "epsilon",
-            "aspirational", "band", "flow_weight", "chunk_iterations", "window",
-            "tolerance", "harvest_tolerance", "max_iterations", "seed", "initial",
-            "out", "python", "driver",
+            "aspirational", "band", "flow_weight", "level_shape",
+            "stage1_level_shape", "stage2_level_shape", "level_weight",
+            "stage1_max_iterations", "stage2_max_iterations",
+            "no_evenflow", "chunk_iterations", "window", "tolerance",
+            "harvest_tolerance", "max_iterations", "seed", "initial", "out",
+            "python", "driver",
         ),
         artifacts=("trace", "schedule", "result", "log"),
     ),
@@ -271,10 +274,15 @@ class WbiProvider:
         for key in ("geometry", "fits", "initial"):
             if params.get(key):
                 cmd += [f"--{key.replace('_', '-')}", str(params[key])]
-        for key in ("bird", "epsilon", "aspirational", "band", "flow_weight", "chunk_iterations",
-                    "window", "tolerance", "harvest_tolerance", "max_iterations", "seed"):
+        for key in ("bird", "epsilon", "aspirational", "band", "flow_weight",
+                    "level_shape", "stage1_level_shape", "stage2_level_shape",
+                    "level_weight", "stage1_max_iterations", "stage2_max_iterations",
+                    "chunk_iterations", "window",
+                    "tolerance", "harvest_tolerance", "max_iterations", "seed"):
             if key in params and params[key] is not None and params[key] != "":
                 cmd += [f"--{key.replace('_', '-')}", str(params[key])]
+        if params.get("no_evenflow"):
+            cmd.append("--no-evenflow")
         env = os.environ.copy()
         env["PYTHONPATH"] = "/srv/shared-data/gep/ws4/ws4-gpu:" + env.get("PYTHONPATH", "")
         env["FRESHFORGE_RUN_ID"] = str(getattr(context, "run_id", "freshforge"))
@@ -292,9 +300,18 @@ class WbiProvider:
                                       message="The scenario did not meet the objective/harvest plateau criterion.",
                                       location=node.id),)
         artifacts = {}
+        trace_path = out / "trace-bird.jsonl"
+        if not trace_path.exists():
+            trace_path = out / "trace-evenflow.jsonl"
+        if not trace_path.exists():
+            trace_path = out / "trace-level.jsonl"
+        schedule_path = out / "schedule-bird.csv"
+        if not schedule_path.exists():
+            schedule_path = out / "schedule-evenflow.csv"
+        if not schedule_path.exists():
+            schedule_path = out / "schedule-level.csv"
         for key, path in (("result", result_path), ("log", log),
-                          ("trace", out / ("trace-bird.jsonl" if params.get("bird") else "trace-evenflow.jsonl")),
-                          ("schedule", out / ("schedule-bird.csv" if params.get("bird") else "schedule-evenflow.csv"))):
+                          ("trace", trace_path), ("schedule", schedule_path)):
             if path.exists():
                 artifacts[key] = self._relative_to_workdir(path, context)
         return ProviderRunResult(status=status,
