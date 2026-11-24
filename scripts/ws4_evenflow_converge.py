@@ -113,6 +113,10 @@ def main() -> int:
         with (args.dataset / "cache" / "candidates.pkl").open("rb") as stream:
             payload = pickle.load(stream)
         index = payload.get("candidates", payload) if isinstance(payload, dict) else payload
+    if isinstance(index, CandidateIndex):
+        keep = {b: v for b, v in index.to_candidates().items() if v}
+        if len(keep) != len(index.blocks):
+            index = CandidateIndex.build(keep)
 
     spatial = None
     if args.mode == "spatial" and args.bird:
