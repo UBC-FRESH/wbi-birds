@@ -1,0 +1,35 @@
+workflow:
+  id: ws4_evenflow_convergence
+  name: ws4 even-flow harvest through convergence
+  description: >
+    One ws4 harvest scenario through the documented sequence: aspirational linear
+    level pull, nonlinear even-flow target, optional bird floor; stop only on an
+    objective/harvest plateau and record the trace.
+nodes:
+  - id: evenflow
+    provider: wbi.ws4_evenflow_convergence
+    outputs:
+      convergence: convergence_record
+    parameters:
+      dataset: /srv/shared-data/gep/wbi-birds/campaigns/ws4-five-tsa-2026-11/full-landscape/tsa41
+      mode: aspatial
+      tsa: tsa41
+      bird: ""
+      epsilon: null
+      aspirational: 200000000
+      band: 1
+      flow_weight: 10000
+      chunk_iterations: 50000
+      window: 10
+      tolerance: 0.0001
+      harvest_tolerance: 0.001
+      max_iterations: 2000000
+      seed: 42
+      initial: /srv/shared-data/gep/wbi-birds/campaigns/ws4-five-tsa-2026-11/prime/tsa41-prime.csv
+      out: results/workflow/ws4-evenflow/tsa41-aspatial
+      python: /srv/shared-data/gep/wbi-birds/tmp/ws4-env/bin/python
+      driver: /srv/shared-data/gep/wbi-birds/reference/wbi-main/scripts/ws4_evenflow_converge.py
+    artifacts:
+      result: results/workflow/ws4-evenflow/tsa41-aspatial/result.json
+      trace: results/workflow/ws4-evenflow/tsa41-aspatial/trace-evenflow.jsonl
+      schedule: results/workflow/ws4-evenflow/tsa41-aspatial/schedule-evenflow.csv

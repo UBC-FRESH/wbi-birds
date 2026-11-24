@@ -143,6 +143,23 @@ NODE_TYPES: tuple[NodeTypeMetadata, ...] = (
         outputs=("analysis",),
         artifacts=("figures", "claims_map"),
     ),
+    NodeTypeMetadata(
+        id="ws4_evenflow_convergence",
+        name="Run ws4 even-flow convergence",
+        description=(
+            "Run one ws4 harvest scenario through the documented sequence: aspirational "
+            "linear level pull, even-flow nonlinear target, then optional bird floor; "
+            "stop only when the best objective and harvest plateau, and record the trace."
+        ),
+        outputs=("convergence",),
+        parameters=(
+            "dataset", "geometry", "fits", "mode", "tsa", "bird", "epsilon",
+            "aspirational", "band", "flow_weight", "chunk_iterations", "window",
+            "tolerance", "harvest_tolerance", "max_iterations", "seed", "initial",
+            "out", "python", "driver",
+        ),
+        artifacts=("trace", "schedule", "result", "log"),
+    ),
 )
 
 
@@ -210,6 +227,8 @@ class WbiProvider:
                 return self._run_fit_antifunction(node, params, context)
             if node_type.id == "verify_parity":
                 return self._run_verify_parity(node, params, context)
+            if node_type.id == "ws4_evenflow_convergence":
+                return self._run_ws4_convergence(node, params, context)
         except Exception as exc:
             return ProviderRunResult(
                 status=RunStatus.FAILED,
@@ -233,6 +252,56 @@ class WbiProvider:
                 ),
             ),
         )
+
+    def _run_ws4_convergence(self, node: WorkflowNode, params: dict[str, Any], context: Any) -> ProviderRunResult:
+        import json
+        import os
+        import subprocess
+        from pathlib import Path
+
+        for required in ("dataset", "mode", "tsa", "out"):
+            if required not in params:
+                raise ValueError(f"Node parameters must provide '{required}'")
+        python = str(params.get("python", "/srv/shared-data/gep/wbi-birds/tmp/ws4-env/bin/python"))
+        driver = str(params.get("driver", "/srv/shared-data/gep/wbi-birds/reference/wbi-main/scripts/ws4_evenflow_converge.py"))
+        out = Path(context.resolve_path(str(params["out"])))
+        out.mkdir(parents=True, exist_ok=True)
+        cmd = [python, driver, "--dataset", str(params["dataset"]), "--mode", str(params["mode"]),
+               "--tsa", str(params["tsa"]), "--out", str(out)]
+        for key in ("geometry", "fits", "initial"):
+            if params.get(key):
+                cmd += [f"--{key.replace('_', '-')}", str(params[key])]
+        for key in ("bird", "epsilon", "aspirational", "band", "flow_weight", "chunk_iterations",
+                    "window", "tolerance", "harvest_tolerance", "max_iterations", "seed"):
+            if key in params and params[key] is not None and params[key] != "":
+                cmd += [f"--{key.replace('_', '-')}", str(params[key])]
+        env = os.environ.copy()
+        env["PYTHONPATH"] = "/srv/shared-data/gep/ws4/ws4-gpu:" + env.get("PYTHONPATH", "")
+        env["FRESHFORGE_RUN_ID"] = str(getattr(context, "run_id", "freshforge"))
+        proc = subprocess.run(cmd, capture_output=True, text=True, env=env, check=False)
+        log = out / "convergence.log"
+        log.write_text(proc.stdout + proc.stderr)
+        result_path = out / "result.json"
+        result = json.loads(result_path.read_text()) if result_path.exists() else {}
+        converged = bool(result.get("converged"))
+        status = RunStatus.SUCCESS if proc.returncode == 0 and converged else RunStatus.FAILED
+        diagnostics = ()
+        if not converged:
+            diagnostics = (Diagnostic(severity=DiagnosticSeverity.ERROR,
+                                      code="ws4.convergence.not_converged",
+                                      message="The scenario did not meet the objective/harvest plateau criterion.",
+                                      location=node.id),)
+        artifacts = {}
+        for key, path in (("result", result_path), ("log", log),
+                          ("trace", out / ("trace-bird.jsonl" if params.get("bird") else "trace-evenflow.jsonl")),
+                          ("schedule", out / ("schedule-bird.csv" if params.get("bird") else "schedule-evenflow.csv"))):
+            if path.exists():
+                artifacts[key] = self._relative_to_workdir(path, context)
+        return ProviderRunResult(status=status,
+                                 outputs={"convergence": result},
+                                 artifacts=artifacts,
+                                 diagnostics=diagnostics,
+                                 data={"command": cmd, "returncode": proc.returncode})
 
     @staticmethod
     def _resolve_instance(params: dict[str, Any], context: Any) -> Path:
