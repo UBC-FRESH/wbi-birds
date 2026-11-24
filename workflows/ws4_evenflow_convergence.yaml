@@ -17,7 +17,7 @@ nodes:
       bird: ""
       epsilon: null
       aspirational: 200000000
-      band: 1
+      band: 5
       flow_weight: 10000
       chunk_iterations: 50000
       window: 10

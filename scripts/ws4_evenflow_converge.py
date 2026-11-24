@@ -67,7 +67,7 @@ def main() -> int:
     ap.add_argument("--bird", default=None)
     ap.add_argument("--epsilon", type=float, default=None)
     ap.add_argument("--aspirational", type=float, default=200_000_000.0)
-    ap.add_argument("--band", type=float, default=1.0)
+    ap.add_argument("--band", type=float, default=5.0)
     ap.add_argument("--flow-weight", type=float, default=10000.0)
     ap.add_argument("--level-shape", choices=("linear", "non_linear"), default="linear")
     ap.add_argument("--level-weight", type=float, default=1.0)
