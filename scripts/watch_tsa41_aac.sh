@@ -2,6 +2,7 @@
 # Watch TSA41 against a single minimum harvest target at the TSR AAC.
 # AAC 1,791,846 m3/yr x 10-year period = 17,918,460 m3 per period.
 set -euo pipefail
+export PYTHONPATH="/srv/shared-data/gep/ws4/ws4-gpu${PYTHONPATH:+:$PYTHONPATH}"
 W=/srv/shared-data/gep/wbi-birds/tmp/ws4-env/bin/ws4
 PY=/srv/shared-data/gep/wbi-birds/tmp/ws4-env/bin/python
 C=/srv/shared-data/gep/wbi-birds/campaigns/ws4-five-tsa-2026-11
