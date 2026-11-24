@@ -206,14 +206,20 @@ function renderTradeoffs() {
   const pts = fr.points;
   const guildPts = fr.guild_frontier || [];
   const guildResponse = fr.guild_response || [];
-  const guilds = [...new Set(guildPts.map(p => p.bird))].sort();
-  $("#tradeoff-status").innerHTML = fr.status === "pilot"
-    ? `<b>Pilot data.</b> These points are the TSA41 / GCKI pilot.`
-    : `<b>Campaign data.</b> ${pts.length} points across ${[...new Set(pts.map(p => p.tsa))].length} TSAs and ${[...new Set(pts.map(p => p.bird))].length} species, two attainments, two models. `
-      + (guildPts.length ? `Plus ${guilds.length} guild response curves for TSA41 (${guilds.map(g => g.replaceAll("_", " ")).join(", ")}).` : "");
+  const fullCurves = fr.curves || [];
+  $("#tradeoff-status").innerHTML = fullCurves.length
+    ? `<b>Full curve grid.</b> ${fullCurves.length} TSA x species/guild curves, 80-100% targets, two models.`
+    : fr.status === "pilot"
+      ? `<b>Pilot data.</b> These points are the TSA41 / GCKI pilot.`
+      : `<b>Campaign data.</b> ${pts.length} points across ${[...new Set(pts.map(p => p.tsa))].length} TSAs and ${[...new Set(pts.map(p => p.bird))].length} species, two attainments, two models.`;
 
-  const tsas = [...new Set(pts.map(p => p.tsa))].sort();
-  const speciesList = [...new Set(pts.map(p => p.bird))].sort();
+  const curveMeta = fullCurves.length ? [...new Map(fullCurves.map(c => [c.indicator, c])).values()] : [];
+  const tsas = fullCurves.length ? [...new Set(fullCurves.map(c => c.tsa))].sort()
+                                : [...new Set(pts.map(p => p.tsa))].sort();
+  const speciesList = fullCurves.length ? curveMeta.filter(c => c.kind === "species").map(c => c.indicator).sort()
+                                        : [...new Set(pts.map(p => p.bird))].sort();
+  const guilds = fullCurves.length ? curveMeta.filter(c => c.kind === "guild").map(c => c.indicator).sort()
+                                   : [...new Set(guildPts.map(p => p.bird))].sort();
   const birds = [...speciesList, ...guilds];
   const tsaSel = $("#front-tsa"), birdSel = $("#front-bird");
   tsaSel.innerHTML = tsas.map(t => `<option value="${t}">${t.replace("tsa", "TSA ")}</option>`).join("");
@@ -231,9 +237,50 @@ function renderTradeoffs() {
   function draw() {
     const bird = birdSel.value;
     const isGuild = guilds.includes(bird);
-    if (isGuild) tsaSel.value = "tsa41";
     const tsa = tsaSel.value;
-    tsaSel.disabled = isGuild;
+    const curve = fullCurves.find(c => c.tsa === tsa && c.indicator === bird);
+    if (curve) {
+      const modes = ["aspatial", "spatial"];
+      const ptsAll = modes.flatMap(m => (curve.modes[m] || []).map(p => ({ ...p, mode: m })));
+      const xs = ptsAll.map(p => p.harvest);
+      const ys = ptsAll.map(p => 100 * p.relative);
+      const xmin = Math.max(0, Math.floor((Math.min(...xs) - 0.02) * 100) / 100);
+      const xmax = Math.ceil((Math.max(...xs) + 0.02) * 100) / 100;
+      const ymin = Math.max(0, Math.floor(Math.min(...ys) - 4));
+      const ymax = Math.ceil(Math.max(...ys) + 4);
+      const c = chart("chart-frontier");
+      c.setOption({
+        grid: { left: 70, right: 28, top: 34, bottom: 42 },
+        tooltip: { trigger: "axis", valueFormatter: v => Number(v).toFixed(1) },
+        legend: { data: modes, top: 0, textStyle: baseText },
+        xAxis: { type: "value", min: xmin, max: xmax, name: "harvest (M m³/yr)", nameLocation: "middle", nameGap: 28,
+                 axisLabel: baseText, splitLine: { lineStyle: { color: "#eee9dd" } } },
+        yAxis: { type: "value", min: ymin, max: ymax, name: "abundance (% baseline)", axisLabel: baseText,
+                 splitLine: { lineStyle: { color: "#eee9dd" } } },
+        series: modes.map(m => ({
+          name: m, type: "line",
+          data: (curve.modes[m] || []).map(p => [p.harvest, 100 * p.relative]),
+          lineStyle: { color: PALETTE[m], width: 2.2 }, itemStyle: { color: PALETTE[m] }, symbolSize: 7,
+        })),
+      });
+      const card = document.querySelector("#chart-frontier").closest(".card");
+      const h3 = card && card.querySelector("h3");
+      if (h3) h3.textContent = "Full tradeoff curve";
+      const byTarget = {};
+      modes.forEach(m => (curve.modes[m] || []).forEach(p => {
+        byTarget[p.target] = byTarget[p.target] || {};
+        byTarget[p.target][m] = p;
+      }));
+      $("#frontier-table").innerHTML = `<table><thead><tr><th>target</th><th class="num">aspatial</th><th class="num">spatial</th><th class="num">delta</th></tr></thead><tbody>
+        ${Object.keys(byTarget).map(Number).sort((a, b) => b - a).map(k => {
+          const v = byTarget[k];
+          if (!v.aspatial || !v.spatial) return "";
+          const a = Number(v.aspatial.harvest), s = Number(v.spatial.harvest);
+          const d = s ? 100 * (a - s) / s : NaN;
+          return `<tr><td>${k.toFixed(2)}</td><td class="num">${a.toFixed(3)}</td><td class="num">${s.toFixed(3)}</td><td class="num">${d.toFixed(1)}%</td></tr>`;
+        }).join("")}</tbody></table>`;
+      return;
+    }
     if (isGuild && guildResponse.length) {
       const card = document.querySelector("#chart-frontier").closest(".card");
       const h3 = card && card.querySelector("h3");
@@ -327,7 +374,7 @@ function renderTradeoffs() {
     <p class="note" style="margin:8px 0"><b>Result:</b> ${fr.verdict.result}</p>
     <p class="note" style="margin:8px 0"><b>Sign flips under one identical schedule:</b> ${flips.length ? flips.join(", ") : "none"}.</p>
     <p class="note" style="margin:8px 0">At matched relative attainment the two models can disagree in magnitude and in sign. The spatial model prices edge and early-seral habitat loss on retained neighbouring forest; the aspatial model prices only the harvested stand.</p>
-    <p class="note" style="margin:8px 0"><b>TSA41 guild responses:</b> mature conifer declines with harvest under both models (aspatial 95→85%, spatial 100→80%); mixedwood diverges (aspatial 97→92%, spatial 102→107%); early seral and cavity rise (aspatial 120→124% and 123→129%; spatial 99→108% and 105→130%). Only mature conifer shows a tradeoff in this range.</p>`;
+    <p class="note" style="margin:8px 0"><b>Full grid:</b> five TSAs × nine species and four guilds; at 90% target, 47 feasible comparisons. The spatial form allows more harvest in 31, the aspatial form in 13, and three are tied (median 6.8%, worst 52.2%). Mature conifer declines under both models in every TSA; mixedwood diverges; early-seral and cavity signs vary by TSA.</p>`;
   draw();
 }
 

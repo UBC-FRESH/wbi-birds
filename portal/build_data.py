@@ -214,8 +214,11 @@ def frontiers() -> dict:
                 "attainment": attainment,
             })
 
+    curve_path = CAMPAIGNS / "dual-full/curves.json"
+    curves = json.loads(curve_path.read_text()) if curve_path.exists() else []
     return {
         "status": "full campaign" if campaign_files and points else "pilot",
+        "curves": curves,
         "guild_frontier": guild_points,
         "guild_response": guild_response,
         "points": points, "seeds": seeds, "impact": impact,
