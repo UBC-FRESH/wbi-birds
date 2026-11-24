@@ -29,6 +29,11 @@ STOCK = "feature.Yield.managed.Total"
 PERIOD_WIDTH = 10
 
 
+def final_status(no_evenflow: bool, ok1: bool, ok2: bool) -> bool:
+    """Stage-1 is a warm start; stage-2 is the convergence gate."""
+    return bool(ok1) if no_evenflow else bool(ok2)
+
+
 def target_text(aspirational, band, flow_weight, bird, epsilon, include_flow,
                 level_shape='linear', level_weight=1.0):
     lines = ["targets:"]
@@ -69,7 +74,10 @@ def main() -> int:
     ap.add_argument("--aspirational", type=float, default=200_000_000.0)
     ap.add_argument("--band", type=float, default=5.0)
     ap.add_argument("--flow-weight", type=float, default=10000.0)
-    ap.add_argument("--level-shape", choices=("linear", "non_linear"), default="linear")
+    ap.add_argument("--level-shape", choices=("linear", "non_linear"), default=None,
+                    help="legacy alias applied to both stages")
+    ap.add_argument("--stage1-level-shape", choices=("linear", "non_linear"), default="non_linear")
+    ap.add_argument("--stage2-level-shape", choices=("linear", "non_linear"), default="linear")
     ap.add_argument("--level-weight", type=float, default=1.0)
     ap.add_argument("--no-evenflow", action="store_true")
     ap.add_argument("--chunk-iterations", type=int, default=50000)
@@ -77,10 +85,15 @@ def main() -> int:
     ap.add_argument("--tolerance", type=float, default=1e-4)
     ap.add_argument("--harvest-tolerance", type=float, default=1e-3)
     ap.add_argument("--max-iterations", type=int, default=2_000_000)
+    ap.add_argument("--stage1-max-iterations", type=int, default=1_000_000)
+    ap.add_argument("--stage2-max-iterations", type=int, default=2_000_000)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--initial", type=Path)
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
+    if args.level_shape is not None:
+        args.stage1_level_shape = args.level_shape
+        args.stage2_level_shape = args.level_shape
 
     from ws4.opt.engine import OptimizeConfig, Optimizer, load_schedule_csv
     from ws4.opt.model2_index import CandidateIndex
@@ -91,7 +104,7 @@ def main() -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "targets-level40.yaml").write_text(
         target_text(args.aspirational, args.band, args.flow_weight, None, None, False,
-                    args.level_shape, args.level_weight))
+                    args.stage1_level_shape, args.level_weight))
 
     accounts = [HARVEST, STOCK]
     if args.bird:
@@ -134,12 +147,12 @@ def main() -> int:
     initial = load_schedule_csv(args.initial) if args.initial else {}
     stages = []
 
-    def stage(name, include_flow, use_bird, start):
+    def stage(name, include_flow, use_bird, start, level_shape, max_iterations):
         target = args.out / f"target-{name}.yaml"
         target.write_text(target_text(args.aspirational, args.band, args.flow_weight,
                                       args.bird if use_bird else None,
                                       args.epsilon if use_bird else None, include_flow,
-                                      args.level_shape, args.level_weight))
+                                      level_shape, args.level_weight))
         targets = load_targets(target)
         kwargs = {}
         if spatial is not None and use_bird:
@@ -152,7 +165,7 @@ def main() -> int:
         converged = False
         total = 0
         trace_path = args.out / f"trace-{name}.jsonl"
-        while total < args.max_iterations:
+        while total < max_iterations:
             if spatial is not None and use_bird:
                 spatial.reset(sched_spatial(current))
             state = BlockAccountState(trajectory, blocks, tuple(accounts), years=200,
@@ -193,19 +206,19 @@ def main() -> int:
         print(json.dumps(stage_rec), flush=True)
         return current, converged, stage_rec
 
-    s1, ok1, rec1 = stage("level", False, False, initial)
+    s1, ok1, rec1 = stage("level", False, bool(args.bird), initial,
+                           args.stage1_level_shape, args.stage1_max_iterations)
     if args.no_evenflow:
         ok2, ok3, last, final_schedule = True, True, rec1, "schedule-level.csv"
     else:
-        s2, ok2, rec2 = stage("evenflow", True, False, s1)
-        if args.bird:
-            _s3, ok3, rec3 = stage("bird", True, True, s2)
-            last, final_schedule = rec3, "schedule-bird.csv"
-        else:
-            ok3, last, final_schedule = True, rec2, "schedule-evenflow.csv"
+        s2, ok2, rec2 = stage("evenflow", True, bool(args.bird), s1,
+                               args.stage2_level_shape, args.stage2_max_iterations)
+        ok3, last, final_schedule = True, rec2, "schedule-evenflow.csv"
+    final_converged = final_status(args.no_evenflow, ok1, ok2)
     result = {
         "tsa": args.tsa, "mode": args.mode, "bird": args.bird, "epsilon": args.epsilon,
-        "converged": bool(ok1 and ok2 and ok3),
+        "converged": final_converged,
+        "stage1_converged": bool(ok1),
         "stages": stages,
         "harvest_M_m3_yr": last.get("harvest"),
         "bird_p20": last.get("bird"),
